@@ -149,14 +149,21 @@ h1 .accent{color:var(--orange)}
 .photo-item .tag{position:absolute;left:0;right:0;bottom:0;
   background:linear-gradient(transparent,rgba(34,78,57,.72));color:#fff;font-size:10px;
   padding:12px 6px 5px;text-align:left;font-weight:600}
-.reward-wall{display:flex;flex-direction:column;gap:9px;margin-bottom:20px}
-.reward-wall.empty{display:none}
-.reward-item{display:flex;align-items:center;gap:11px;background:var(--orange-soft);
-  border:1px solid #F0D9C6;border-radius:12px;padding:10px 14px;text-align:left}
-.reward-item .idx{flex:none;width:26px;height:26px;border-radius:50%;background:var(--orange);
+.checkin-list{display:flex;flex-direction:column;gap:9px;margin-bottom:20px}
+.checkin-list.empty{display:none}
+.checkin-row{display:flex;align-items:center;gap:11px;background:var(--green-soft);
+  border:1px solid #CFE0D5;border-radius:12px;padding:10px 14px;text-align:left}
+.checkin-row .idx{flex:none;width:26px;height:26px;border-radius:50%;background:var(--green);
   color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center}
-.reward-item .rname{font-size:14px;font-weight:700;color:var(--ink);flex:1;min-width:0}
-.reward-item .rtype{font-size:11px;color:var(--muted);flex:none}
+.checkin-row .rname{font-size:14px;font-weight:700;color:var(--ink);flex:1;min-width:0}
+.checkin-row .rtype{font-size:11px;color:var(--muted);flex:none}
+.final-reward{display:none;margin-bottom:20px}
+.final-reward.show{display:block}
+.final-reward .fr-card{background:var(--orange-soft);border:2px solid var(--orange);
+  border-radius:16px;padding:20px 18px;text-align:center}
+.final-reward .fr-label{font-size:12px;font-weight:700;letter-spacing:1.5px;
+  color:var(--orange);margin-bottom:8px}
+.final-reward .fr-name{font-size:22px;font-weight:800;color:var(--ink);line-height:1.4}
 #rewardCanvas{max-width:100%;border-radius:14px;box-shadow:0 12px 32px rgba(34,78,57,.16);display:none}
 #rewardCanvas.show{display:inline-block}
 .modal-mask{position:fixed;inset:0;background:rgba(34,53,43,.48);display:none;
@@ -270,14 +277,18 @@ h1 .accent{color:var(--orange)}
   <input type="file" id="photoInput" accept="image/*" style="display:none">
 
   <section class="checkin-box">
-    <h2>打卡抽盲盒</h2>
-    <p>每完成一项骰子安排，拍照或定位打卡，即可抽取一个小确幸奖励。</p>
+    <h2>行程打卡 · 最后抽盲盒</h2>
+    <p>每到一个地方，拍照或定位打卡；行程结束后统一抽取一个小确幸盲盒。</p>
     <div class="photo-wall" id="photoWall"></div>
-    <div class="reward-wall" id="rewardWall"></div>
+    <div class="checkin-list" id="checkinList"></div>
+    <div class="pass-actions">
+      <button class="big-btn warn" id="drawBlindBtn" disabled>抽取今日盲盒</button>
+    </div>
+    <div class="final-reward" id="finalReward"></div>
     <div class="pass-actions">
       <button class="big-btn primary" id="rewardCardBtn" disabled>生成今日小确幸卡</button>
     </div>
-    <canvas id="rewardCanvas" width="750" height="900"></canvas>
+    <canvas id="rewardCanvas" width="750" height="760"></canvas>
     <div class="pass-actions">
       <button class="big-btn primary" id="rewardSaveBtn" style="display:none">保存小确幸卡图片</button>
     </div>
@@ -493,7 +504,7 @@ const REWARDS=[
   "一张明信片寄给未来","一张刮刮乐，试试手气","挑一本喜欢的杂志","一块小蛋糕",
   "买个可爱的冰箱贴","看一场完整的日落","给自己写张鼓励便签","挑一款没吃过的糖",
   "点一杯慢慢喝的手冲咖啡","坐一次旋转木马","带个毛绒小挂件回家","多赖床15分钟"];
-const state={scene:"random",mode:"i",freshEnabled:true,faces:{},results:{},rolled:{},crazyUsed:false,passNo:null,reviewStars:0,highlight:null,checkins:{}};
+const state={scene:"random",mode:"i",freshEnabled:true,faces:{},results:{},rolled:{},crazyUsed:false,passNo:null,reviewStars:0,highlight:null,checkins:{},finalReward:null};
 const rolling={};
 const rollCount={};
 let epoch=0;
@@ -530,7 +541,7 @@ function renderDiceGrid(){
       '<div class="scene"><div class="cube" id="cube-'+meta.key+'">'+
         [1,2,3,4,5,6].map(i=>'<div class="face f'+i+'"><span class="q">?</span></div>').join("")+
       '</div></div><div class="status" id="status-'+meta.key+'">待摇</div>'+
-      '<button class="checkin-btn" id="checkin-'+meta.key+'" disabled>打卡抽盲盒</button>';
+      '<button class="checkin-btn" id="checkin-'+meta.key+'" disabled>打卡</button>';
     cell.querySelector(".scene").addEventListener("click",()=>rollOne(meta.key));
     cell.querySelector(".checkin-btn").addEventListener("click",()=>openCheckin(meta.key));
     grid.appendChild(cell);
@@ -617,7 +628,7 @@ function syncCheckinButtons(){
     const done=!!state.checkins[m.key];
     b.disabled=!state.rolled[m.key]||done;
     b.classList.toggle("done",done);
-    b.textContent=done?"已打卡 · 已抽盲盒":"打卡抽盲盒";
+    b.textContent=done?"已打卡":"打卡";
   });
 }
 function afterRoll(){
@@ -719,7 +730,8 @@ function resetAll(){
   for(const k in rollCount)delete rollCount[k];
   state.faces={};state.results={};state.rolled={};
   state.crazyUsed=false;state._crazyFilled=false;state.passNo=null;
-  state.reviewStars=0;state.highlight=null;state._autoRoll=false;state.checkins={};
+  state.reviewStars=0;state.highlight=null;state._autoRoll=false;
+  state.checkins={};state.finalReward=null;
   setReviewEnabled(false);
   document.getElementById("reviewCanvas").classList.remove("show");
   document.getElementById("reviewSaveBtn").style.display="none";
@@ -798,13 +810,20 @@ document.getElementById("locCheckin").addEventListener("click",e=>{
 });
 function finishCheckin(type,data){
   const key=pendingKey;
-  const reward=REWARDS[Math.floor(Math.random()*REWARDS.length)];
-  state.checkins[key]={type,data,reward};
+  state.checkins[key]={type,data};
   pendingKey=null;
   renderCheckin();syncCheckinButtons();
+}
+// 行程结束：统一抽取一个盲盒
+document.getElementById("drawBlindBtn").addEventListener("click",()=>{
+  const entries=getDiceMeta().filter(m=>state.checkins[m.key]);
+  if(!entries.length)return;
+  const reward=REWARDS[Math.floor(Math.random()*REWARDS.length)];
+  state.finalReward=reward;
   document.getElementById("rewardTitle").textContent=reward;
   rewardModal.classList.add("show");
-}
+  renderCheckin();
+});
 document.getElementById("rewardOk").addEventListener("click",()=>rewardModal.classList.remove("show"));
 rewardModal.addEventListener("click",e=>{if(e.target===rewardModal)rewardModal.classList.remove("show");});
 function renderCheckin(){
@@ -816,15 +835,25 @@ function renderCheckin(){
     const c=state.checkins[m.key];
     return '<div class="photo-item"><img src="'+c.data+'" alt=""><span class="tag">'+reviewName(m.key)+'</span></div>';
   }).join("");
-  const rw=document.getElementById("rewardWall");
-  rw.classList.toggle("empty",entries.length===0);
-  rw.innerHTML=entries.map((m,i)=>{
+  // 打卡清单
+  const cl=document.getElementById("checkinList");
+  cl.classList.toggle("empty",entries.length===0);
+  cl.innerHTML=entries.map((m,i)=>{
     const c=state.checkins[m.key];
-    return '<div class="reward-item"><span class="idx">'+(i+1)+'</span>'+
-      '<span class="rname">'+c.reward+'</span><span class="rtype">'+
-      (c.type==="photo"?"拍照":"定位")+' · '+reviewName(m.key)+'</span></div>';
+    return '<div class="checkin-row"><span class="idx">'+(i+1)+'</span>'+
+      '<span class="rname">'+reviewName(m.key)+'</span><span class="rtype">'+
+      (c.type==="photo"?"拍照":"定位")+'打卡</span></div>';
   }).join("");
-  document.getElementById("rewardCardBtn").disabled=entries.length===0;
+  // 抽盲盒按钮：至少一次打卡即可
+  const drawBtn=document.getElementById("drawBlindBtn");
+  drawBtn.disabled=entries.length===0||!!state.finalReward;
+  drawBtn.textContent=state.finalReward?"盲盒已抽取":"抽取今日盲盒";
+  // 最终奖励
+  const fr=document.getElementById("finalReward");
+  fr.classList.toggle("show",!!state.finalReward);
+  if(state.finalReward)fr.innerHTML='<div class="fr-card"><div class="fr-label">今日盲盒</div>'+
+    '<div class="fr-name">'+state.finalReward+'</div></div>';
+  document.getElementById("rewardCardBtn").disabled=!state.finalReward;
 }
 
 /* ============ 计时器 ============ */
@@ -983,9 +1012,9 @@ const rewardCanvas=document.getElementById("rewardCanvas");
 const rwctx2=rewardCanvas.getContext("2d");
 document.getElementById("rewardCardBtn").addEventListener("click",()=>{
   const entries=getDiceMeta().filter(m=>state.checkins[m.key]);
-  if(!entries.length)return;
-  const W=750,rowH=84,headerH=250,footerH=130;
-  const H=headerH+entries.length*rowH+footerH;
+  if(!state.finalReward)return;
+  const photoN=entries.filter(m=>state.checkins[m.key].type==="photo").length;
+  const W=750,H=760;
   rewardCanvas.height=H;
   const c=rwctx2;
   c.clearRect(0,0,W,H);
@@ -997,25 +1026,25 @@ document.getElementById("rewardCardBtn").addEventListener("click",()=>{
   const today=new Date();
   const dateStr=today.getFullYear()+"."+String(today.getMonth()+1).padStart(2,"0")+"."+String(today.getDate()).padStart(2,"0");
   c.font="600 19px -apple-system,'PingFang SC',sans-serif";c.fillStyle="#E07A3E";
-  c.fillText("共打卡 "+entries.length+" 项 · "+dateStr,W/2,174);
-  c.font="500 18px -apple-system,'PingFang SC',sans-serif";c.fillStyle="#6E7E73";
-  c.fillText("生活里的小美好，都替你收好啦",W/2,212);
-  let y=290;
-  entries.forEach((m,i)=>{
-    const d=state.checkins[m.key];
-    c.fillStyle="#E07A3E";c.beginPath();c.arc(96,y-10,24,0,Math.PI*2);c.fill();
-    c.fillStyle="#fff";c.font="700 22px -apple-system,'PingFang SC',sans-serif";
-    c.textAlign="center";c.fillText(String(i+1),96,y-2);
-    c.textAlign="left";c.fillStyle="#23352B";c.font="700 26px -apple-system,'PingFang SC',sans-serif";
-    c.fillText(d.reward,140,y-2);
-    c.fillStyle="#6E7E73";c.font="500 17px -apple-system,'PingFang SC',sans-serif";
-    c.fillText((d.type==="photo"?"拍照":"定位")+"打卡 · "+reviewName(m.key),140,y+28);
-    y+=rowH;
-  });
-  c.textAlign="center";c.fillStyle="#224E39";c.font="700 24px -apple-system,'PingFang SC',sans-serif";
-  c.fillText("愿你每天都被温柔以待",W/2,H-80);
+  c.fillText(dateStr+" · 打卡 "+entries.length+" 项 · 照片 "+photoN+" 张",W/2,174);
+  // 最终盲盒：突出展示
+  c.fillStyle="#FBEADD";c.fillRect(110,238,W-220,250);
+  c.strokeStyle="#E07A3E";c.lineWidth=3;c.strokeRect(110,238,W-220,250);
+  c.fillStyle="#E07A3E";c.font="700 20px -apple-system,'PingFang SC',sans-serif";
+  c.fillText("今日盲盒",W/2,290);
+  c.fillStyle="#23352B";c.font="800 34px -apple-system,'PingFang SC',sans-serif";
+  // 奖励名居中换行
+  const reward=state.finalReward;
+  if(c.measureText(reward).width>W-280){
+    const mid=Math.ceil(reward.length/2);
+    c.fillText(reward.slice(0,mid),W/2,380);c.fillText(reward.slice(mid),W/2,428);
+  }else c.fillText(reward,W/2,408);
+  c.fillStyle="#6E7E73";c.font="500 18px -apple-system,'PingFang SC',sans-serif";
+  c.fillText("生活里的小美好，都替你收好啦",W/2,560);
+  c.fillStyle="#224E39";c.font="700 24px -apple-system,'PingFang SC',sans-serif";
+  c.fillText("愿你每天都被温柔以待",W/2,620);
   c.fillStyle="#6E7E73";c.font="500 17px -apple-system,'PingFang SC',sans-serif";
-  c.fillText("City Walk 骰子 · 小确幸收集",W/2,H-48);
+  c.fillText("City Walk 骰子 · 小确幸收集",W/2,664);
   rewardCanvas.classList.add("show");
   document.getElementById("rewardSaveBtn").style.display="inline-block";
 });
