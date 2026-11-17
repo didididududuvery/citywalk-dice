@@ -131,7 +131,60 @@ h1 .accent{color:var(--orange)}
   .timer-box .spacer{display:none}
   .pass-box,.review-box{padding:22px 16px}
 }
-@media (prefers-reduced-motion:reduce){.cube{transition-duration:.01ms}}
+.checkin-btn{border:1px solid var(--orange);background:var(--orange-soft);color:var(--orange);
+  border-radius:999px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;
+  font-family:inherit;white-space:nowrap;transition:all .15s}
+.checkin-btn:hover:not(:disabled){background:var(--orange);color:#fff}
+.checkin-btn:disabled{border-color:var(--line);background:#F1F2EE;color:#A9B1AA;cursor:not-allowed}
+.checkin-btn.done{border-color:var(--green);background:var(--green-soft);color:var(--green);cursor:default}
+.checkin-box{background:var(--card);border:1px solid var(--line);border-radius:18px;
+  padding:26px 22px;text-align:center;margin-top:24px;box-shadow:var(--shadow-card)}
+.checkin-box h2{font-size:19px;margin-bottom:6px}
+.checkin-box>p{font-size:13px;color:var(--muted);margin-bottom:20px}
+.photo-wall{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.photo-wall.empty{display:none}
+.photo-item{position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;
+  background:var(--green-soft);box-shadow:0 4px 12px rgba(34,78,57,.1)}
+.photo-item img{width:100%;height:100%;object-fit:cover;display:block}
+.photo-item .tag{position:absolute;left:0;right:0;bottom:0;
+  background:linear-gradient(transparent,rgba(34,78,57,.72));color:#fff;font-size:10px;
+  padding:12px 6px 5px;text-align:left;font-weight:600}
+.reward-wall{display:flex;flex-direction:column;gap:9px;margin-bottom:20px}
+.reward-wall.empty{display:none}
+.reward-item{display:flex;align-items:center;gap:11px;background:var(--orange-soft);
+  border:1px solid #F0D9C6;border-radius:12px;padding:10px 14px;text-align:left}
+.reward-item .idx{flex:none;width:26px;height:26px;border-radius:50%;background:var(--orange);
+  color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.reward-item .rname{font-size:14px;font-weight:700;color:var(--ink);flex:1;min-width:0}
+.reward-item .rtype{font-size:11px;color:var(--muted);flex:none}
+#rewardCanvas{max-width:100%;border-radius:14px;box-shadow:0 12px 32px rgba(34,78,57,.16);display:none}
+#rewardCanvas.show{display:inline-block}
+.modal-mask{position:fixed;inset:0;background:rgba(34,53,43,.48);display:none;
+  align-items:center;justify-content:center;padding:24px;z-index:100;backdrop-filter:blur(2px)}
+.modal-mask.show{display:flex}
+.modal-card{background:#fff;border-radius:20px;padding:28px 24px;width:100%;max-width:340px;
+  text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.25);animation:pop .25s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-card h3{font-size:20px;color:var(--ink);margin-bottom:8px}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:18px}
+.modal-btn{width:100%;margin-bottom:10px}
+.modal-close{border:none;background:none;color:var(--muted);font-size:13px;cursor:pointer;
+  font-family:inherit;padding:6px;font-weight:600}
+.gift-box{width:84px;height:84px;margin:0 auto 16px;border-radius:18px;
+  background:linear-gradient(135deg,var(--orange),#C95F28);color:#fff;font-weight:800;
+  display:flex;align-items:center;justify-content:center;font-size:20px;letter-spacing:2px;
+  box-shadow:0 10px 24px rgba(224,122,62,.4);animation:shake .8s ease-in-out infinite}
+@keyframes shake{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+.reward-pop #rewardTitle{color:var(--orange);font-size:21px;line-height:1.4}
+@media (max-width:560px){
+  .photo-wall{grid-template-columns:repeat(3,1fr)}
+  .checkin-box{padding:22px 16px}
+}
+@media (prefers-reduced-motion:reduce){
+  .cube{transition-duration:.01ms}
+  .gift-box{animation:none}
+  .modal-card{animation:none}
+}
 </style>
 </head>
 <body>
@@ -213,6 +266,41 @@ h1 .accent{color:var(--orange)}
       <button class="big-btn primary" id="reviewSaveBtn" style="display:none">保存复盘卡图片</button>
     </div>
   </section>
+
+  <input type="file" id="photoInput" accept="image/*" style="display:none">
+
+  <section class="checkin-box">
+    <h2>打卡抽盲盒</h2>
+    <p>每完成一项骰子安排，拍照或定位打卡，即可抽取一个小确幸奖励。</p>
+    <div class="photo-wall" id="photoWall"></div>
+    <div class="reward-wall" id="rewardWall"></div>
+    <div class="pass-actions">
+      <button class="big-btn primary" id="rewardCardBtn" disabled>生成今日小确幸卡</button>
+    </div>
+    <canvas id="rewardCanvas" width="750" height="900"></canvas>
+    <div class="pass-actions">
+      <button class="big-btn primary" id="rewardSaveBtn" style="display:none">保存小确幸卡图片</button>
+    </div>
+  </section>
+
+  <div class="modal-mask" id="checkinModal">
+    <div class="modal-card">
+      <h3>选择打卡方式</h3>
+      <p class="modal-sub" id="checkinTarget"></p>
+      <button class="big-btn primary modal-btn" id="photoCheckin">拍照打卡</button>
+      <button class="big-btn dark modal-btn" id="locCheckin">定位打卡</button>
+      <button class="modal-close" id="checkinCancel">取消</button>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="rewardModal">
+    <div class="modal-card reward-pop">
+      <div class="gift-box" id="giftBox">盲盒</div>
+      <h3 id="rewardTitle"></h3>
+      <p class="modal-sub">恭喜你抽中今日小确幸</p>
+      <button class="big-btn primary modal-btn" id="rewardOk">收下</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -400,7 +488,12 @@ function pickN(pool,n){
 }
 const stationText=s=>s[0]+" · "+s[1];
 
-const state={scene:"random",mode:"i",freshEnabled:true,faces:{},results:{},rolled:{},crazyUsed:false,passNo:null,reviewStars:0,highlight:null};
+const REWARDS=[
+  "奖励自己一根棒棒糖","买一束花插进花瓶","一杯奶茶，全糖","一个冰淇淋球",
+  "一张明信片寄给未来","一张刮刮乐，试试手气","挑一本喜欢的杂志","一块小蛋糕",
+  "买个可爱的冰箱贴","看一场完整的日落","给自己写张鼓励便签","挑一款没吃过的糖",
+  "点一杯慢慢喝的手冲咖啡","坐一次旋转木马","带个毛绒小挂件回家","多赖床15分钟"];
+const state={scene:"random",mode:"i",freshEnabled:true,faces:{},results:{},rolled:{},crazyUsed:false,passNo:null,reviewStars:0,highlight:null,checkins:{}};
 const rolling={};
 const rollCount={};
 let epoch=0;
@@ -436,8 +529,10 @@ function renderDiceGrid(){
       '<div class="dice-name"><span class="dot" style="background:'+meta.color+'"></span>'+diceName+'</div>'+
       '<div class="scene"><div class="cube" id="cube-'+meta.key+'">'+
         [1,2,3,4,5,6].map(i=>'<div class="face f'+i+'"><span class="q">?</span></div>').join("")+
-      '</div></div><div class="status" id="status-'+meta.key+'">待摇</div>';
+      '</div></div><div class="status" id="status-'+meta.key+'">待摇</div>'+
+      '<button class="checkin-btn" id="checkin-'+meta.key+'" disabled>打卡抽盲盒</button>';
     cell.querySelector(".scene").addEventListener("click",()=>rollOne(meta.key));
+    cell.querySelector(".checkin-btn").addEventListener("click",()=>openCheckin(meta.key));
     grid.appendChild(cell);
   });
   renderHighlight();
@@ -516,11 +611,21 @@ function setReviewEnabled(on){
   document.querySelectorAll(".star-btn").forEach(b=>b.disabled=!on);
   document.querySelectorAll(".hl-chip").forEach(b=>b.disabled=!on);
 }
+function syncCheckinButtons(){
+  getDiceMeta().forEach(m=>{
+    const b=document.getElementById("checkin-"+m.key);if(!b)return;
+    const done=!!state.checkins[m.key];
+    b.disabled=!state.rolled[m.key]||done;
+    b.classList.toggle("done",done);
+    b.textContent=done?"已打卡 · 已抽盲盒":"打卡抽盲盒";
+  });
+}
 function afterRoll(){
   const all=getDiceMeta().every(m=>state.rolled[m.key]);
   document.getElementById("rerollBtn").disabled=!all||state.crazyUsed;
   document.getElementById("passBtn").disabled=!all;
   setReviewEnabled(all);
+  syncCheckinButtons();
   if(all&&state._autoRoll){state._autoRoll=false;reconcile();}
 }
 document.getElementById("rollAllBtn").addEventListener("click",()=>{
@@ -614,7 +719,7 @@ function resetAll(){
   for(const k in rollCount)delete rollCount[k];
   state.faces={};state.results={};state.rolled={};
   state.crazyUsed=false;state._crazyFilled=false;state.passNo=null;
-  state.reviewStars=0;state.highlight=null;state._autoRoll=false;
+  state.reviewStars=0;state.highlight=null;state._autoRoll=false;state.checkins={};
   setReviewEnabled(false);
   document.getElementById("reviewCanvas").classList.remove("show");
   document.getElementById("reviewSaveBtn").style.display="none";
@@ -635,6 +740,12 @@ function resetAll(){
   const rb=document.getElementById("rerollBtn");
   rb.disabled=true;rb.textContent="反悔重摇（仅剩 1 次）";
   document.getElementById("passBtn").disabled=true;
+  const rwCanvas=document.getElementById("rewardCanvas");
+  rwCanvas.classList.remove("show");
+  document.getElementById("rewardSaveBtn").style.display="none";
+  document.getElementById("rewardCardBtn").disabled=true;
+  rewardModal.classList.remove("show");checkinModal.classList.remove("show");
+  renderCheckin();
   hidePass();
 }
 function bindSwitch(groupId,attr,stateKey){
@@ -651,6 +762,70 @@ function bindSwitch(groupId,attr,stateKey){
 bindSwitch("sceneGroup","scene","scene");
 bindSwitch("modeGroup","mode","mode");
 bindSwitch("freshGroup","fresh","freshEnabled");
+
+/* ============ 打卡抽盲盒 ============ */
+let pendingKey=null;
+const checkinModal=document.getElementById("checkinModal");
+const rewardModal=document.getElementById("rewardModal");
+const photoInput=document.getElementById("photoInput");
+function openCheckin(key){
+  if(!state.rolled[key]||state.checkins[key])return;
+  pendingKey=key;
+  document.getElementById("checkinTarget").textContent="完成项："+reviewName(key);
+  checkinModal.classList.add("show");
+}
+function closeCheckin(){checkinModal.classList.remove("show");pendingKey=null;}
+document.getElementById("checkinCancel").addEventListener("click",closeCheckin);
+checkinModal.addEventListener("click",e=>{if(e.target===checkinModal)closeCheckin();});
+document.getElementById("photoCheckin").addEventListener("click",()=>{
+  photoInput.value="";photoInput.click();
+});
+photoInput.addEventListener("change",()=>{
+  const f=photoInput.files&&photoInput.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=()=>{closeCheckin();finishCheckin("photo",rd.result);};
+  rd.readAsDataURL(f);
+});
+document.getElementById("locCheckin").addEventListener("click",e=>{
+  if(!navigator.geolocation){alert("当前浏览器不支持定位，改用拍照打卡吧");return;}
+  const b=e.target;b.disabled=true;b.textContent="定位中…";
+  navigator.geolocation.getCurrentPosition(
+    pos=>{b.disabled=false;b.textContent="定位打卡";closeCheckin();
+      finishCheckin("location",[pos.coords.latitude,pos.coords.longitude]);},
+    err=>{b.disabled=false;b.textContent="定位打卡";
+      alert("定位失败（"+err.message+"），改用拍照打卡吧");},
+    {timeout:8000,enableHighAccuracy:false});
+});
+function finishCheckin(type,data){
+  const key=pendingKey;
+  const reward=REWARDS[Math.floor(Math.random()*REWARDS.length)];
+  state.checkins[key]={type,data,reward};
+  pendingKey=null;
+  renderCheckin();syncCheckinButtons();
+  document.getElementById("rewardTitle").textContent=reward;
+  rewardModal.classList.add("show");
+}
+document.getElementById("rewardOk").addEventListener("click",()=>rewardModal.classList.remove("show"));
+rewardModal.addEventListener("click",e=>{if(e.target===rewardModal)rewardModal.classList.remove("show");});
+function renderCheckin(){
+  const entries=getDiceMeta().filter(m=>state.checkins[m.key]);
+  const wall=document.getElementById("photoWall");
+  const photos=entries.filter(m=>state.checkins[m.key].type==="photo");
+  wall.classList.toggle("empty",photos.length===0);
+  wall.innerHTML=photos.map(m=>{
+    const c=state.checkins[m.key];
+    return '<div class="photo-item"><img src="'+c.data+'" alt=""><span class="tag">'+reviewName(m.key)+'</span></div>';
+  }).join("");
+  const rw=document.getElementById("rewardWall");
+  rw.classList.toggle("empty",entries.length===0);
+  rw.innerHTML=entries.map((m,i)=>{
+    const c=state.checkins[m.key];
+    return '<div class="reward-item"><span class="idx">'+(i+1)+'</span>'+
+      '<span class="rname">'+c.reward+'</span><span class="rtype">'+
+      (c.type==="photo"?"拍照":"定位")+' · '+reviewName(m.key)+'</span></div>';
+  }).join("");
+  document.getElementById("rewardCardBtn").disabled=entries.length===0;
+}
 
 /* ============ 计时器 ============ */
 let timerSec=0,timerHandle=null;
@@ -801,6 +976,53 @@ document.getElementById("reviewSaveBtn").addEventListener("click",()=>{
   const a=document.createElement("a");
   a.download="漫游复盘卡_"+(state.passNo||"")+".png";
   a.href=rCanvas.toDataURL("image/png");a.click();
+});
+
+/* ============ 今日小确幸收集卡 ============ */
+const rewardCanvas=document.getElementById("rewardCanvas");
+const rwctx2=rewardCanvas.getContext("2d");
+document.getElementById("rewardCardBtn").addEventListener("click",()=>{
+  const entries=getDiceMeta().filter(m=>state.checkins[m.key]);
+  if(!entries.length)return;
+  const W=750,rowH=84,headerH=250,footerH=130;
+  const H=headerH+entries.length*rowH+footerH;
+  rewardCanvas.height=H;
+  const c=rwctx2;
+  c.clearRect(0,0,W,H);
+  c.fillStyle="#F6F4EC";c.fillRect(0,0,W,H);
+  c.strokeStyle="#2F6B4F";c.lineWidth=4;c.strokeRect(36,36,W-72,H-72);
+  c.strokeStyle="rgba(47,107,79,.35)";c.lineWidth=1.5;c.strokeRect(50,50,W-100,H-100);
+  c.textAlign="center";c.fillStyle="#224E39";c.font="700 40px -apple-system,'PingFang SC',sans-serif";
+  c.fillText("今日小确幸收集卡",W/2,128);
+  const today=new Date();
+  const dateStr=today.getFullYear()+"."+String(today.getMonth()+1).padStart(2,"0")+"."+String(today.getDate()).padStart(2,"0");
+  c.font="600 19px -apple-system,'PingFang SC',sans-serif";c.fillStyle="#E07A3E";
+  c.fillText("共打卡 "+entries.length+" 项 · "+dateStr,W/2,174);
+  c.font="500 18px -apple-system,'PingFang SC',sans-serif";c.fillStyle="#6E7E73";
+  c.fillText("生活里的小美好，都替你收好啦",W/2,212);
+  let y=290;
+  entries.forEach((m,i)=>{
+    const d=state.checkins[m.key];
+    c.fillStyle="#E07A3E";c.beginPath();c.arc(96,y-10,24,0,Math.PI*2);c.fill();
+    c.fillStyle="#fff";c.font="700 22px -apple-system,'PingFang SC',sans-serif";
+    c.textAlign="center";c.fillText(String(i+1),96,y-2);
+    c.textAlign="left";c.fillStyle="#23352B";c.font="700 26px -apple-system,'PingFang SC',sans-serif";
+    c.fillText(d.reward,140,y-2);
+    c.fillStyle="#6E7E73";c.font="500 17px -apple-system,'PingFang SC',sans-serif";
+    c.fillText((d.type==="photo"?"拍照":"定位")+"打卡 · "+reviewName(m.key),140,y+28);
+    y+=rowH;
+  });
+  c.textAlign="center";c.fillStyle="#224E39";c.font="700 24px -apple-system,'PingFang SC',sans-serif";
+  c.fillText("愿你每天都被温柔以待",W/2,H-80);
+  c.fillStyle="#6E7E73";c.font="500 17px -apple-system,'PingFang SC',sans-serif";
+  c.fillText("City Walk 骰子 · 小确幸收集",W/2,H-48);
+  rewardCanvas.classList.add("show");
+  document.getElementById("rewardSaveBtn").style.display="inline-block";
+});
+document.getElementById("rewardSaveBtn").addEventListener("click",()=>{
+  const a=document.createElement("a");
+  a.download="今日小确幸卡_"+(state.passNo||"")+".png";
+  a.href=rewardCanvas.toDataURL("image/png");a.click();
 });
 </script>
 </body>
