@@ -61,8 +61,8 @@ h1 .accent{color:var(--orange)}
 .f4{transform:rotateY(-90deg) translateZ(calc(var(--size)/2))}
 .f5{transform:rotateX(90deg) translateZ(calc(var(--size)/2))}
 .f6{transform:rotateX(-90deg) translateZ(calc(var(--size)/2))}
-.status{font-size:11px;color:var(--muted);min-height:16px;text-align:center;line-height:1.4;
-  max-width:var(--size);width:100%}
+.status{font-size:11px;color:var(--muted);height:16px;text-align:center;line-height:16px;
+  max-width:var(--size);width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .status.done{color:var(--green);font-weight:700}
 .actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:28px}
 .big-btn{border:none;border-radius:13px;padding:14px 26px;font-size:15px;font-weight:700;
@@ -115,9 +115,10 @@ h1 .accent{color:var(--orange)}
   body{padding:22px 14px 48px}
   h1{font-size:25px}
   .panel{padding:18px 16px;gap:18px}
-  .dice-grid{gap:20px 14px}
+  .dice-grid{gap:24px 18px}
   .dice-grid.cols-6,.dice-grid.cols-5{grid-template-columns:repeat(2,1fr)}
-  :root{--size:calc((100vw - 28px - 14px)/2)}
+  :root{--size:calc((100vw - 28px - 18px)/2)}
+  .dice-cell{gap:8px}
   .face{font-size:11.5px;padding:8px}
   .face .q{font-size:30px}
   .actions{display:grid;grid-template-columns:1fr 1fr;gap:11px}
@@ -795,21 +796,21 @@ document.getElementById("photoCheckin").addEventListener("click",()=>{
 photoInput.addEventListener("change",()=>{
   const f=photoInput.files&&photoInput.files[0];if(!f)return;
   const rd=new FileReader();
-  rd.onload=()=>{closeCheckin();finishCheckin("photo",rd.result);};
+  rd.onload=()=>{const k=pendingKey;closeCheckin();finishCheckin(k,"photo",rd.result);};
   rd.readAsDataURL(f);
 });
 document.getElementById("locCheckin").addEventListener("click",e=>{
   if(!navigator.geolocation){alert("当前浏览器不支持定位，改用拍照打卡吧");return;}
   const b=e.target;b.disabled=true;b.textContent="定位中…";
   navigator.geolocation.getCurrentPosition(
-    pos=>{b.disabled=false;b.textContent="定位打卡";closeCheckin();
-      finishCheckin("location",[pos.coords.latitude,pos.coords.longitude]);},
+    pos=>{b.disabled=false;b.textContent="定位打卡";const k=pendingKey;closeCheckin();
+      finishCheckin(k,"location",[pos.coords.latitude,pos.coords.longitude]);},
     err=>{b.disabled=false;b.textContent="定位打卡";
       alert("定位失败（"+err.message+"），改用拍照打卡吧");},
     {timeout:8000,enableHighAccuracy:false});
 });
-function finishCheckin(type,data){
-  const key=pendingKey;
+function finishCheckin(key,type,data){
+  if(!key)return;
   state.checkins[key]={type,data};
   pendingKey=null;
   renderCheckin();syncCheckinButtons();
