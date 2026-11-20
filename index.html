@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>City Walk 随机路线骰子 · 广州版</title>
+<meta name="description" content="摇下骰子，让命运替你决定去哪、怎么走、干什么。4 个剧本、真实地点与就近地铁、通行证、行程打卡与复盘卡，打开即玩。">
+<meta name="theme-color" content="#2F6B4F">
+<meta property="og:type" content="website">
+<meta property="og:title" content="City Walk 随机路线骰子 · 广州版">
+<meta property="og:description" content="选择困难症的周末摆渡人：摇一下，命运替你决定去哪、怎么走、干什么。">
+<meta property="og:image" content="https://didididududuvery.github.io/citywalk-dice/og-cover.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232F6B4F'/%3E%3Ccircle cx='10' cy='10' r='2.6' fill='%23F6F4EC'/%3E%3Ccircle cx='22' cy='10' r='2.6' fill='%23F6F4EC'/%3E%3Ccircle cx='16' cy='16' r='2.6' fill='%23E07A3E'/%3E%3Ccircle cx='10' cy='22' r='2.6' fill='%23F6F4EC'/%3E%3Ccircle cx='22' cy='22' r='2.6' fill='%23F6F4EC'/%3E%3C/svg%3E">
 <style>
 :root{
@@ -125,6 +131,7 @@ h1 .accent{color:var(--orange)}
   .actions #rollAllBtn{grid-column:1;width:100%}
   .actions #rerollBtn{grid-column:2;width:100%}
   .actions #passBtn{grid-column:1/-1;width:100%}
+  .actions #resetBtn{grid-column:1/-1;width:100%}
   .actions .hint-text{grid-column:1/-1}
   .big-btn{padding:14px 18px}
   .timer-box{flex-wrap:wrap;padding:16px 18px;gap:12px}
@@ -193,6 +200,78 @@ h1 .accent{color:var(--orange)}
   .gift-box{animation:none}
   .modal-card{animation:none}
 }
+.ghost{background:#fff;color:var(--green);border:2px solid var(--line)}
+.ghost:hover{border-color:var(--green)}
+.conflict-hint{margin:-12px 0 26px;padding:12px 16px;border-radius:12px;
+  background:var(--orange-soft);border:1px solid var(--orange);color:#8A4A20;font-size:13px;display:none}
+.conflict-hint.show{display:block}
+.checkin-progress{font-size:12.5px;color:var(--muted);margin-bottom:16px}
+.del-btn{border:none;background:none;color:var(--muted);font-size:18px;cursor:pointer;padding:0 2px;line-height:1;font-family:inherit}
+.del-btn:hover{color:var(--orange)}
+.share-tip{font-size:12px;color:var(--muted);display:block;margin-top:10px}
+.scene:focus-visible,.star-btn:focus-visible,.hl-chip:focus-visible,.checkin-btn:focus-visible{outline:3px solid var(--orange);outline-offset:3px}
+
+/* ---- 命运链接 + 足迹册 ---- */
+.fate-actions{margin-top:14px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.fate-actions .mini-btn{border-color:var(--green);color:var(--green);font-weight:700}
+.fate-actions .mini-btn:hover:not(:disabled){background:var(--green);color:#fff}
+.fate-actions .mini-btn:disabled{opacity:.45;cursor:not-allowed;border-color:var(--line);color:var(--muted)}
+.fate-note{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.7}
+.guest-banner{display:none;align-items:center;gap:16px;background:var(--green-soft);
+  border:1px solid #BFD9C8;border-radius:16px;padding:16px 20px;margin-bottom:22px}
+.guest-banner.show{display:flex}
+.guest-banner .gb-txt{flex:1;min-width:0;font-size:13px;color:var(--green-deep);line-height:1.65}
+.guest-banner .gb-txt strong{font-size:15px;display:block;margin-bottom:2px}
+.guest-banner .big-btn{padding:11px 20px;font-size:14px;white-space:nowrap}
+.foot-box{background:var(--card);border:1px solid var(--line);border-radius:18px;
+  padding:26px 22px;margin-top:24px;box-shadow:var(--shadow-card)}
+.foot-box h2{font-size:19px;margin-bottom:6px}
+.foot-box>p{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.7}
+.foot-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.foot-stat{background:var(--green-soft);border-radius:13px;padding:14px 10px;text-align:center}
+.foot-stat b{display:block;font-size:24px;color:var(--green-deep);font-variant-numeric:tabular-nums;line-height:1.2}
+.foot-stat span{font-size:11.5px;color:var(--muted)}
+.stamp-bar{height:10px;background:#EDF0EA;border-radius:999px;overflow:hidden;margin-bottom:8px}
+.stamp-fill{height:100%;width:0;background:linear-gradient(90deg,var(--green),var(--orange));border-radius:999px;transition:width .4s}
+.stamp-label{font-size:12px;color:var(--muted);margin-bottom:22px;line-height:1.6}
+.foot-cal-title{font-size:12px;font-weight:700;color:var(--green);letter-spacing:1px;margin-bottom:10px}
+.foot-cal{display:grid;grid-template-columns:repeat(12,1fr);grid-template-rows:repeat(7,1fr);
+  grid-auto-flow:column;gap:3px;margin-bottom:22px}
+.foot-cal i{display:block;height:13px;border-radius:3px;background:#EDF0EA}
+.foot-cal i.on{background:var(--green)}
+.foot-cal i.future{background:transparent;border:1px dashed #E3E7DF}
+.foot-list{display:flex;flex-direction:column;gap:9px;margin-bottom:20px}
+.foot-empty{font-size:13px;color:var(--muted);background:#F7F8F4;border:1px dashed var(--line);
+  border-radius:12px;padding:22px 14px;text-align:center;margin-bottom:20px}
+.foot-row{display:flex;align-items:center;gap:12px;background:#F7F8F4;border:1px solid var(--line);
+  border-radius:12px;padding:11px 14px;text-align:left}
+.foot-row .fr-date{font-size:11px;color:var(--muted);width:78px;flex:none;font-variant-numeric:tabular-nums}
+.foot-row .fr-main{flex:1;min-width:0}
+.foot-row .fr-spot{font-size:14px;font-weight:700;color:var(--ink);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.foot-row .fr-sub{font-size:11px;color:var(--muted);display:block;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.foot-row .fr-stars{font-size:12px;color:var(--orange);flex:none;letter-spacing:1px;white-space:nowrap}
+.foot-row .mini-btn{padding:6px 12px;font-size:11.5px;flex:none}
+.foot-foot{border-top:1px solid var(--line);padding-top:16px;display:flex;gap:12px;
+  align-items:center;justify-content:space-between;flex-wrap:wrap}
+.foot-privacy{font-size:11.5px;color:var(--muted);flex:1;min-width:200px;line-height:1.7}
+.foot-btns{display:flex;gap:8px;flex-wrap:wrap}
+.foot-btns .mini-btn{font-size:11.5px;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,12px);background:var(--ink);
+  color:#fff;font-size:13px;font-weight:600;padding:12px 20px;border-radius:999px;
+  box-shadow:0 10px 30px rgba(34,53,43,.25);opacity:0;pointer-events:none;transition:all .25s;z-index:200}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.dice-grid.guest .scene{cursor:default}
+@media (max-width:560px){
+  .foot-stats{grid-template-columns:repeat(2,1fr)}
+  .foot-box{padding:22px 16px}
+  .guest-banner{flex-wrap:wrap;padding:14px 16px}
+  .guest-banner .big-btn{width:100%}
+  .foot-row{flex-wrap:wrap;gap:8px}
+  .foot-row .fr-date{width:auto}
+  .foot-row .fr-main{min-width:60%}
+  .foot-cal{gap:2px}
+  .foot-cal i{height:11px}
+}
 </style>
 </head>
 <body>
@@ -203,6 +282,13 @@ h1 .accent{color:var(--orange)}
     <p class="subtitle">选择困难症的周末摆渡人：摇一下，命运替你决定去哪、怎么走、干什么。</p>
   </header>
 
+  <div class="guest-banner" id="guestBanner">
+    <div class="gb-txt">
+      <strong>这是朋友分享的一局命运</strong>
+      <span id="guestMeta">只读复现 · 你可以保存这张通行证，或自己摇一局</span>
+    </div>
+    <button class="big-btn primary" id="guestMineBtn">我也摇一次</button>
+  </div>
   <section class="panel">
     <div class="field">
       <label>城市</label>
@@ -241,10 +327,12 @@ h1 .accent{color:var(--orange)}
 
   <section class="actions">
     <button class="big-btn primary" id="rollAllBtn">一键开摇</button>
-    <button class="big-btn warn" id="rerollBtn" disabled>反悔重摇（仅剩 1 次）</button>
+    <button class="big-btn warn" id="rerollBtn" disabled>命运加码（1 次）</button>
     <button class="big-btn dark" id="passBtn" disabled>生成漫游通行证</button>
-    <span class="hint-text">每颗骰子最多摇 3 次，满 3 次即最终结果；落定中不可重复点击。</span>
+    <button class="big-btn ghost" id="resetBtn">重新开一局</button>
+    <span class="hint-text">每颗骰子最多摇 3 次，满 3 次即最终结果；落定中不可重复点击。「命运加码」会把任务卡换成一组疯狂任务，仅 1 次。</span>
   </section>
+  <div class="conflict-hint" id="conflictHint"></div>
 
   <section class="timer-box">
     <span class="timer-label">行程计时</span>
@@ -258,8 +346,14 @@ h1 .accent{color:var(--orange)}
     <p>骰子全部落定后生成，可保存图片发朋友圈/小红书。</p>
     <canvas id="passCanvas" width="750" height="1050"></canvas>
     <div class="pass-actions">
-      <button class="big-btn primary" id="downloadBtn" style="display:none">保存通行证图片</button>
+      <button class="big-btn primary" id="downloadBtn" style="display:none">保存 / 分享通行证</button>
+      <span class="share-tip">手机端如未自动下载，可长按上方图片保存</span>
     </div>
+    <div class="fate-actions">
+      <button class="mini-btn" id="fateLinkBtn" disabled>复制命运链接</button>
+      <button class="mini-btn" id="fateTextBtn" disabled>复制今日命运播报</button>
+    </div>
+    <p class="fate-note" id="fateNote">把链接发给朋友，对方打开就能复现同一局；播报文案已写好，发小红书可直接粘贴。</p>
   </section>
 
   <section class="review-box">
@@ -271,17 +365,19 @@ h1 .accent{color:var(--orange)}
     <div class="review-comment" id="reviewComment">先打星，再点亮点</div>
     <canvas id="reviewCanvas" width="750" height="560"></canvas>
     <div class="pass-actions">
-      <button class="big-btn primary" id="reviewSaveBtn" style="display:none">保存复盘卡图片</button>
+      <button class="big-btn primary" id="reviewSaveBtn" style="display:none">保存 / 分享复盘卡</button>
+      <span class="share-tip">手机端如未自动下载，可长按上方图片保存</span>
     </div>
   </section>
 
-  <input type="file" id="photoInput" accept="image/*" style="display:none">
+  <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none">
 
   <section class="checkin-box">
     <h2>行程打卡 · 最后抽盲盒</h2>
     <p>每到一个地方，拍照或定位打卡；行程结束后统一抽取一个小确幸盲盒。</p>
     <div class="photo-wall" id="photoWall"></div>
     <div class="checkin-list" id="checkinList"></div>
+    <div class="checkin-progress" id="checkinProgress">尚未打卡</div>
     <div class="pass-actions">
       <button class="big-btn warn" id="drawBlindBtn" disabled>抽取今日盲盒</button>
     </div>
@@ -291,7 +387,26 @@ h1 .accent{color:var(--orange)}
     </div>
     <canvas id="rewardCanvas" width="750" height="760"></canvas>
     <div class="pass-actions">
-      <button class="big-btn primary" id="rewardSaveBtn" style="display:none">保存小确幸卡图片</button>
+      <button class="big-btn primary" id="rewardSaveBtn" style="display:none">保存 / 分享小确幸卡</button>
+      <span class="share-tip">手机端如未自动下载，可长按上方图片保存</span>
+    </div>
+  </section>
+
+  <section class="foot-box">
+    <h2>足迹册 · 走过的地方</h2>
+    <p>每生成一张通行证就记一程。最近 3 次去过的地点会自动避开，下一局尽量不重样。</p>
+    <div class="foot-stats" id="footStats"></div>
+    <div class="stamp-bar"><div class="stamp-fill" id="stampFill"></div></div>
+    <div class="stamp-label" id="stampLabel"></div>
+    <div class="foot-cal-title">最近 12 周</div>
+    <div class="foot-cal" id="footCal"></div>
+    <div class="foot-list" id="footList"></div>
+    <div class="foot-foot">
+      <span class="foot-privacy" id="footPrivacy">照片、定位与足迹只保存在本机浏览器，不上传服务器。</span>
+      <div class="foot-btns">
+        <button class="mini-btn" id="footClearBtn">清空足迹</button>
+        <button class="mini-btn" id="storeClearBtn">清空本局存档（含照片）</button>
+      </div>
     </div>
   </section>
 
@@ -314,6 +429,7 @@ h1 .accent{color:var(--orange)}
     </div>
   </div>
 </div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 /* ============ 广州地铁站（真实站点，按线路抽取） ============ */
@@ -350,7 +466,7 @@ const SCENES={
       "每到路口抛硬币：正左反右，听到广场舞音乐就结束","只走有树荫的一侧，拍满9张照片收工"],
     taskI:["拍齐5种不同的绿色","收集3个好看的招牌字体并拍照","记录沿途3种声音",
       "给遇到的每只狗拍一张肖像","数清楚一路经过多少棵榕树","找一家橱窗最好看的店，只拍不进",
-      "彩蛋｜对遇到的第5个人点头微笑"],
+      "彩蛋｜把第一眼看到的颜色记下来"],
     taskE:["和一位店主聊满3句话，问出店名的故事","向路人打听附近最好吃的店并真的去",
       "夸一个陌生人的穿搭","在店里用方言点一次单","邀请路人帮你拍一张背影照",
       "问摊主一个和商品无关的问题","彩蛋｜向遇到的第5个人说一句“今天真好”"],
@@ -368,7 +484,7 @@ const SCENES={
       "跟着广场舞音乐走，音乐消失就回头","每走10分钟找张长椅坐下，拍满9张照片收工"],
     taskI:["拍5种不同形状的叶子","记录3种鸟叫或环境声","找一个最舒服的长椅打分",
       "数湖里一共有多少只船","观察并记录3种不同的树","给遇到的每只猫拍肖像",
-      "彩蛋｜对遇到的第5个人点头微笑"],
+      "彩蛋｜把第一眼看到的颜色记下来"],
     taskE:["问一位大爷这公园的历史","跟跳一段广场舞再离开","夸一位打太极的阿姨",
       "找人问路，认真道谢后再走","和遛狗的人聊两句他的狗","问摊主最好卖的是什么",
       "彩蛋｜向遇到的第5个人说一句“今天真好”"],
@@ -386,7 +502,7 @@ const SCENES={
       "听到街坊聊天就放慢脚步，拍满9张照片","只走有生活气息的路，看到第3只猫就停"],
     taskI:["拍5个好看的老门牌","收集3个不同的阳台","记录3句街坊对话（只听不聊）",
       "找最老的一面墙拍照","数清楚巷子里有多少盆绿植","拍3个楼下小店的招牌",
-      "彩蛋｜对遇到的第5个人点头微笑"],
+      "彩蛋｜把第一眼看到的颜色记下来"],
     taskE:["问街坊附近最老的店","和楼下乘凉的人聊满3句","学一句街坊口头禅并复述",
       "问店主在这里开了多少年","夸一位邻居的花养得好","帮店主一个小忙再走",
       "彩蛋｜向遇到的第5个人说一句“今天真好”"],
@@ -404,7 +520,7 @@ const SCENES={
       "每20分钟必须进店一次，拍满9张美食","只走有烟火气的路，第3个红绿灯结束"],
     taskI:["给每道上桌的菜打分","记录3种不同的气味","找最破的一家小店",
       "拍5道刚上桌的菜","数清楚菜单上有多少道菜","记录每道菜的价格",
-      "彩蛋｜对遇到的第5个人点头微笑"],
+      "彩蛋｜把第一眼看到的颜色记下来"],
     taskE:["问老板招牌是什么并点它","和拼桌的人聊一句吃的","夸一句厨师或摊主",
       "问摊主出摊多少年了","问邻桌推荐一道菜","学一句方言点菜",
       "彩蛋｜向遇到的第5个人说一句“今天真好”"],
@@ -477,12 +593,23 @@ const RANDOM_SPOTS={
   "老城区扫街":[
     ["恩宁路永庆坊","1号线黄沙站"],["西华路老街","1号线陈家祠站"],
     ["龙津西路骑楼","1号线长寿路站"],["北京路古道","6号线北京路站"],
-    ["南华西路洋楼","2号线市二宫站"],["东山口洋楼","1/6号线东山口站"]]
+    ["南华西路洋楼","2号线市二宫站"],["东山口洋楼","1/6号线东山口站"]],
+  "追一场日落":[
+    ["猎德大桥江边","5号线猎德站"],["海心沙","APM线海心沙站"],
+    ["二沙岛江边","APM线海心沙站步行"],["广州塔滨江","3号线广州塔站"],
+    ["太古仓码头","8号线沙园站步行"],["东山湖公园湖畔","6号线东湖站"]],
+  "城市绿色收集":[
+    ["华南植物园","6号线植物园站"],["天河公园","5号线员村站步行"],
+    ["珠江公园","5号线猎德站"],["越秀公园","2号线越秀公园站"],
+    ["海珠湖公园","3号线大塘站"],["麓湖公园","5号线小北站步行"]]
 };
 
 const CRAZY=["进一家店只问不买，然后礼貌离开","用播音腔念出看到的第一个招牌",
   "倒着走满一个路口（注意安全）","和路边的雕塑合影并给它配台词",
   "对三位路人点头微笑致意","单脚站立等完一个红灯"];
+const CRAZY_I=["用非惯用手拍一张照片","给路边的一棵树取个名字",
+  "找一块最特别的井盖拍照","闭眼数 10 秒，记下睁眼第一眼的颜色",
+  "把看到的第一句广告语抄下来","用最慢的速度走完一个路口"];
 
 const SCENE_TITLE={random:"广州漫游通行证",park:"公园漫游通行证",community:"社区漫游通行证",food:"美食漫游通行证"};
 const BASE_META=[
@@ -493,71 +620,189 @@ const BASE_META=[
   {key:"limit",name:"限制条件",color:"#2F6B4F"}
 ];
 
+
+/* ============ 基础工具 ============ */
 function pickN(pool,n){
   const arr=pool.slice(),out=[];
   while(out.length<n&&arr.length)out.push(arr.splice(Math.floor(Math.random()*arr.length),1)[0]);
   return out;
 }
 const stationText=s=>s[0]+" · "+s[1];
+const $=id=>document.getElementById(id);
+const REDUCED=!!(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+const SPIN_MS=REDUCED?60:1150;
+const STEP_MS=REDUCED?10:150;
+const STORE_KEY="citywalk-dice:v2";
+const HIST_KEY="citywalk-dice:history:v1";
+const SHARE_BASE=(location.protocol==="file:"?"https://didididududuvery.github.io/citywalk-dice/":location.href.split("#")[0]);
+let GUEST=null;
 
 const REWARDS=[
   "奖励自己一根棒棒糖","买一束花插进花瓶","一杯奶茶，全糖","一个冰淇淋球",
   "一张明信片寄给未来","一张刮刮乐，试试手气","挑一本喜欢的杂志","一块小蛋糕",
   "买个可爱的冰箱贴","看一场完整的日落","给自己写张鼓励便签","挑一款没吃过的糖",
   "点一杯慢慢喝的手冲咖啡","坐一次旋转木马","带个毛绒小挂件回家","多赖床15分钟"];
-const state={scene:"random",mode:"i",freshEnabled:true,faces:{},results:{},rolled:{},crazyUsed:false,passNo:null,reviewStars:0,highlight:null,checkins:{},finalReward:null};
-const rolling={};
-const rollCount={};
-let epoch=0;
+const COMMENTS={
+  5:"命运在线，建议封神，下次还让它带",
+  4:"安排得明明白白，扣一颗星怕它骄傲",
+  3:"中规中矩，命运今天摸鱼了",
+  2:"骰子状态可疑，建议再摇一局挽回",
+  1:"已被列入黑名单，评论区公开审判"
+};
+const FACE_ROT=[
+  "rotateX(0deg) rotateY(0deg)","rotateX(0deg) rotateY(180deg)",
+  "rotateX(0deg) rotateY(-90deg)","rotateX(0deg) rotateY(90deg)",
+  "rotateX(-90deg) rotateY(0deg)","rotateX(90deg) rotateY(0deg)"];
 
+const state={scene:"random",mode:"i",freshEnabled:true,faces:{},results:{},rolled:{},
+  crazyUsed:false,_crazyFilled:false,passNo:null,reviewStars:0,highlight:null,
+  checkins:{},finalReward:null};
+const rolling={},rollCount={},faceIdx={},spins={};
+let epoch=0,bulkRolling=false,reconciling=false,reconcileRound=0;
+let timerBase=0,timerStartAt=null,timerSec=0,timerHandle=null;
+
+function applySpin(rot,extra){
+  return rot.replace(/rotateX\((-?\d+)deg\)/,(m,d)=>"rotateX("+(parseInt(d,10)+extra)+"deg)")
+            .replace(/rotateY\((-?\d+)deg\)/,(m,d)=>"rotateY("+(parseInt(d,10)+extra)+"deg)");
+}
+function rollInProgress(){return Object.keys(rolling).some(k=>rolling[k]);}
+function allRolled(){return getDiceMeta().every(m=>state.rolled[m.key]);}
+function showConflict(msg){
+  const el=$("conflictHint");
+  el.textContent=msg||"";el.classList.toggle("show",!!msg);
+}
+function clearConflict(){showConflict(null);}
+
+/* ============ 本地存档 ============ */
+function snapshot(){
+  return {v:2,scene:state.scene,mode:state.mode,freshEnabled:state.freshEnabled,
+    faces:state.faces,results:state.results,rolled:state.rolled,
+    crazyUsed:state.crazyUsed,_crazyFilled:state._crazyFilled,passNo:state.passNo,
+    reviewStars:state.reviewStars,highlight:state.highlight,
+    checkins:state.checkins,finalReward:state.finalReward,
+    rollCount:rollCount,faceIdx:faceIdx,spins:spins,
+    timerBase:timerBase,timerStartAt:timerStartAt};
+}
+function saveState(){
+  if(GUEST)return;
+  try{localStorage.setItem(STORE_KEY,JSON.stringify(snapshot()));}
+  catch(err){console.warn("本地存档写入失败（可能超出容量）",err);}
+  syncHistoryFromState();
+}
+function syncChips(){
+  [["sceneGroup","scene",state.scene],["modeGroup","mode",state.mode],
+   ["freshGroup","fresh",state.freshEnabled?"on":"off"]].forEach(([g,attr,val])=>{
+    document.querySelectorAll("#"+g+" .chip").forEach(b=>b.classList.toggle("active",b.dataset[attr]===val));
+  });
+}
+function loadState(){
+  let d=null;
+  try{d=JSON.parse(localStorage.getItem(STORE_KEY)||"null");}catch(e){return false;}
+  if(!d||d.v!==2)return false;
+  state.scene=SCENES[d.scene]?d.scene:"random";
+  state.mode=d.mode==="e"?"e":"i";
+  state.freshEnabled=d.freshEnabled!==false;
+  state.faces=d.faces||{};state.results=d.results||{};state.rolled=d.rolled||{};
+  state.crazyUsed=!!d.crazyUsed;state._crazyFilled=!!d.crazyUsed;
+  state.passNo=d.passNo||null;state.reviewStars=d.reviewStars||0;
+  state.highlight=d.highlight||null;state.checkins=d.checkins||{};
+  state.finalReward=d.finalReward||null;
+  Object.keys(d.rollCount||{}).forEach(k=>rollCount[k]=d.rollCount[k]);
+  Object.keys(d.faceIdx||{}).forEach(k=>faceIdx[k]=d.faceIdx[k]);
+  Object.keys(d.spins||{}).forEach(k=>spins[k]=d.spins[k]);
+  timerBase=d.timerBase||0;timerStartAt=d.timerStartAt||null;
+  syncChips();renderDiceGrid();
+  getDiceMeta().forEach(m=>{
+    const k=m.key;
+    if(state.faces[k])fillFaces(k,state.faces[k]);
+    const cube=$("cube-"+k);
+    if(cube&&faceIdx[k]!=null)cube.style.transform=applySpin(FACE_ROT[faceIdx[k]]||FACE_ROT[0],spins[k]||0);
+    refreshStatus(k);
+  });
+  const all=allRolled();
+  setReviewEnabled(all);syncCheckinButtons();
+  $("rerollBtn").disabled=!all||state.crazyUsed;
+  $("rerollBtn").textContent=state.crazyUsed?"命运已加码（次数用完）":"命运加码（1 次）";
+  $("passBtn").disabled=!all;
+  $("fateLinkBtn").disabled=!all;$("fateTextBtn").disabled=!all;
+  $("rollAllBtn").disabled=false;$("rollAllBtn").textContent="一键开摇";
+  if(state.passNo&&all)drawPass();
+  refreshReview();
+  if(state.reviewStars)drawReviewCard(false);
+  renderCheckin();
+  if(state.finalReward)drawRewardCard(false);
+  if(timerStartAt)startTimer(true);else{timerSec=timerBase;renderTimer();}
+  return true;
+}
+
+/* ============ 骰子渲染 ============ */
+const grid=$("diceGrid");
 function getDiceMeta(){
   return state.freshEnabled?BASE_META.concat([{key:"fresh",name:"新鲜事",color:"#E07A3E"}]):BASE_META.slice();
 }
+function diceLabel(key){
+  const spotNameMap={park:"公园",community:"社区",food:"美食区",random:"目的地"};
+  if(key==="station")return spotNameMap[state.scene]||"目的地";
+  const m=getDiceMeta().find(x=>x.key===key);
+  return m?m.name:"";
+}
+const SPOT_FALLBACK=(()=>{
+  const seen={},out=[];
+  [].concat(PARKS,COMMUNITY_SPOTS,FOOD_SPOTS,
+    Object.keys(RANDOM_SPOTS).reduce((a,k)=>a.concat(RANDOM_SPOTS[k]),[]))
+    .forEach(p=>{if(p&&p[0]&&!seen[p[0]]){seen[p[0]]=1;out.push(p);}});
+  return out;
+})();
 function optionPool(key){
   if(key==="station"){
-    const spotMap={park:[PARKS],community:[COMMUNITY_SPOTS],food:[FOOD_SPOTS]};
-    const pool=spotMap[state.scene];
-    if(pool)return pickN(pool[0],6).map(p=>p[0]+" · "+p[1]);
     const themed=RANDOM_SPOTS[state.results.theme];
-    if(themed)return pickN(themed,6).map(p=>p[0]+" · "+p[1]);
-    return pickN(STATIONS,6).map(stationText);
+    const pool=state.scene==="park"?PARKS:state.scene==="community"?COMMUNITY_SPOTS:
+      state.scene==="food"?FOOD_SPOTS:(themed||STATIONS);
+    const fmt=p=>p[0]+" · "+p[1];
+    const all=pool.map(fmt),avoid=recentSpots(3);
+    let kept=avoid.length?all.filter(x=>avoid.indexOf(spotName(x))<0):all;
+    if(kept.length<6){
+      const extra=SPOT_FALLBACK.map(fmt).filter(x=>
+        kept.indexOf(x)<0&&avoid.indexOf(spotName(x))<0);
+      kept=kept.concat(pickN(extra,6-kept.length));
+    }
+    return pickN(kept,6);
   }
   const scene=SCENES[state.scene];
   if(key==="task")return pickN(state.mode==="i"?scene.taskI:scene.taskE,6);
   return pickN(scene[key],6);
 }
-
-/* ============ 渲染骰子 ============ */
-const grid=document.getElementById("diceGrid");
 function renderDiceGrid(){
   grid.className="dice-grid "+(state.freshEnabled?"cols-6":"cols-5");
   grid.innerHTML="";
   getDiceMeta().forEach(meta=>{
     const cell=document.createElement("div");
     cell.className="dice-cell";
-    const spotNameMap={park:"公园",community:"社区",food:"美食区"};
-    const diceName=meta.key==="station"&&spotNameMap[state.scene]?spotNameMap[state.scene]:meta.name;
+    const name=diceLabel(meta.key);
     cell.innerHTML=
-      '<div class="dice-name"><span class="dot" style="background:'+meta.color+'"></span>'+diceName+'</div>'+
-      '<div class="scene"><div class="cube" id="cube-'+meta.key+'">'+
+      '<div class="dice-name"><span class="dot" style="background:'+meta.color+'"></span>'+name+'</div>'+
+      '<div class="scene" tabindex="0" role="button" aria-label="重摇'+name+'骰子"><div class="cube" id="cube-'+meta.key+'">'+
         [1,2,3,4,5,6].map(i=>'<div class="face f'+i+'"><span class="q">?</span></div>').join("")+
       '</div></div><div class="status" id="status-'+meta.key+'">待摇</div>'+
       '<button class="checkin-btn" id="checkin-'+meta.key+'" disabled>打卡</button>';
-    cell.querySelector(".scene").addEventListener("click",()=>rollOne(meta.key));
+    const scene=cell.querySelector(".scene");
+    scene.addEventListener("click",()=>{if(!bulkRolling)rollOne(meta.key);});
+    scene.addEventListener("keydown",e=>{
+      if((e.key==="Enter"||e.key===" ")&&!bulkRolling){e.preventDefault();rollOne(meta.key);}
+    });
     cell.querySelector(".checkin-btn").addEventListener("click",()=>openCheckin(meta.key));
     grid.appendChild(cell);
   });
   renderHighlight();
 }
 function renderHighlight(){
-  const row=document.getElementById("highlightRow");
+  const row=$("highlightRow");
   row.innerHTML="";
-  const spotNameMap={park:"公园",community:"社区",food:"美食区"};
   getDiceMeta().forEach(meta=>{
-    const name=meta.key==="station"&&spotNameMap[state.scene]?spotNameMap[state.scene]:meta.name;
     const chip=document.createElement("button");
     chip.className="hl-chip"+(state.highlight===meta.key?" on":"");
-    chip.textContent=name;
+    chip.textContent=diceLabel(meta.key);
+    chip.setAttribute("aria-pressed",state.highlight===meta.key?"true":"false");
     chip.addEventListener("click",()=>{
       state.highlight=meta.key;
       renderHighlight();refreshReview();drawReviewCard();
@@ -565,59 +810,73 @@ function renderHighlight(){
     row.appendChild(chip);
   });
 }
-renderDiceGrid();
-
-const FACE_ROT=[
-  "rotateX(0deg) rotateY(0deg)","rotateX(0deg) rotateY(180deg)",
-  "rotateX(0deg) rotateY(-90deg)","rotateX(0deg) rotateY(90deg)",
-  "rotateX(-90deg) rotateY(0deg)","rotateX(90deg) rotateY(0deg)"];
-
 function fillFaces(key,faces){
-  document.getElementById("cube-"+key).querySelectorAll(".face").forEach((el,i)=>{
+  const cube=$("cube-"+key);if(!cube)return;
+  cube.querySelectorAll(".face").forEach((el,i)=>{
     const isEaster=String(faces[i]).indexOf("彩蛋")===0;
     el.className="face f"+(i+1)+(isEaster?" easter":"");
     el.textContent=faces[i];
   });
 }
+function refreshStatus(key){
+  const st=$("status-"+key);if(!st)return;
+  const cube=$("cube-"+key),sceneEl=cube&&cube.closest(".scene");
+  const v=state.results[key];
+  if(!v||!state.rolled[key]){
+    st.textContent="待摇";st.classList.remove("done");
+    if(sceneEl)sceneEl.classList.remove("exhausted");return;
+  }
+  const short=v.slice(0,10)+(v.length>10?"…":"");
+  const left=3-(rollCount[key]||0);
+  if(left<=0){st.textContent="三次已满 · 最终："+short;if(sceneEl)sceneEl.classList.add("exhausted");}
+  else{st.textContent="已锁定（剩"+left+"次）："+short;if(sceneEl)sceneEl.classList.remove("exhausted");}
+  st.classList.add("done");
+}
 function hidePass(){
-  document.getElementById("passCanvas").classList.remove("show");
-  document.getElementById("downloadBtn").style.display="none";
+  $("passCanvas").classList.remove("show");
+  $("downloadBtn").style.display="none";
 }
 
+/* ============ 摇骰 ============ */
 function rollOne(key,force){
-  if(rolling[key])return;                 // 落定锁定
-  if(!force && (rollCount[key]||0)>=3)return;  // 每颗骰子最多3次
-  hidePass();                             // 重摇即旧证失效
+  if(GUEST||rolling[key])return;
+  if(!force&&(rollCount[key]||0)>=3)return;
+  const prevTheme=key==="theme"?state.results.theme:null;
+  hidePass();clearConflict();reconcileRound=0;
   rolling[key]=true;
   if(!force)rollCount[key]=(rollCount[key]||0)+1;
   const myEpoch=epoch;
   if(!state.faces[key]||(key==="task"&&state.crazyUsed&&!state._crazyFilled))state.faces[key]=optionPool(key);
   fillFaces(key,state.faces[key]);
-  const cube=document.getElementById("cube-"+key);
+  const cube=$("cube-"+key);
   const idx=Math.floor(Math.random()*6),extra=720*(2+Math.floor(Math.random()*2));
-  state.results[key]=state.faces[key][idx];  // 立即落定结果，供后续骰子的 optionPool 协调
-  cube.style.transform=FACE_ROT[idx]
-    .replace(/rotateX\((-?\d+)deg\)/,(m,d)=>"rotateX("+(parseInt(d,10)+extra)+"deg)")
-    .replace(/rotateY\((-?\d+)deg\)/,(m,d)=>"rotateY("+(parseInt(d,10)+extra)+"deg)");
-  const st=document.getElementById("status-"+key);
+  faceIdx[key]=idx;spins[key]=extra;
+  state.results[key]=state.faces[key][idx];
+  cube.style.transform=applySpin(FACE_ROT[idx],extra);
+  const st=$("status-"+key);
   st.textContent="落定中…";st.classList.remove("done");
   setTimeout(()=>{
     rolling[key]=false;
     if(myEpoch!==epoch)return;
     state.rolled[key]=true;
     state.results[key]=state.faces[key][idx];
-    const short=state.results[key].slice(0,10)+(state.results[key].length>10?"…":"");
-    const sceneEl=document.querySelector("#cube-"+key).closest(".scene");
-    if(rollCount[key]>=3){
-      st.textContent="三次已满 · 最终："+short;
-      sceneEl.classList.add("exhausted");
-    }else{
-      st.textContent="已锁定（剩"+(3-rollCount[key])+"次）："+short;
-      sceneEl.classList.remove("exhausted");
-    }
-    st.classList.add("done");
+    faceIdx[key]=idx;
+    refreshStatus(key);
+    if(key==="theme")relinkStation(prevTheme,state.results.theme);
     afterRoll();
-  },1150);
+    saveState();
+  },SPIN_MS);
+}
+/* 主题变了，随机版的目的地池必须跟着换（不占摇动次数） */
+function relinkStation(prev,next){
+  if(state.scene!=="random"||prev===next)return;
+  if(!state.rolled.station||rolling.station)return;
+  delete state.faces.station;
+  state.rolled.station=false;
+  faceIdx.station=null;
+  const st=$("status-station");
+  if(st){st.textContent="主题已变，目的地同步更新中…";st.classList.remove("done");}
+  rollOne("station",true);
 }
 function setReviewEnabled(on){
   document.querySelectorAll(".star-btn").forEach(b=>b.disabled=!on);
@@ -625,7 +884,7 @@ function setReviewEnabled(on){
 }
 function syncCheckinButtons(){
   getDiceMeta().forEach(m=>{
-    const b=document.getElementById("checkin-"+m.key);if(!b)return;
+    const b=$("checkin-"+m.key);if(!b)return;
     const done=!!state.checkins[m.key];
     b.disabled=!state.rolled[m.key]||done;
     b.classList.toggle("done",done);
@@ -633,258 +892,367 @@ function syncCheckinButtons(){
   });
 }
 function afterRoll(){
-  const all=getDiceMeta().every(m=>state.rolled[m.key]);
-  document.getElementById("rerollBtn").disabled=!all||state.crazyUsed;
-  document.getElementById("passBtn").disabled=!all;
+  const all=allRolled();
+  if(all)bulkRolling=false;
+  $("rollAllBtn").disabled=bulkRolling||reconciling;
+  $("rollAllBtn").textContent=bulkRolling?"开摇中…":"一键开摇";
+  $("rerollBtn").disabled=!all||state.crazyUsed||reconciling;
+  $("passBtn").disabled=!all||reconciling;
   setReviewEnabled(all);
+  $("fateLinkBtn").disabled=!all;$("fateTextBtn").disabled=!all;
   syncCheckinButtons();
-  if(all&&state._autoRoll){state._autoRoll=false;reconcile();}
+  if(state.reviewStars)drawReviewCard(false);
+  if(all&&!reconciling&&!rollInProgress())reconcile();
+  saveState();
 }
-document.getElementById("rollAllBtn").addEventListener("click",()=>{
-  state._autoRoll=true;
-  getDiceMeta().forEach((m,i)=>setTimeout(()=>rollOne(m.key),i*150));
+$("rollAllBtn").addEventListener("click",()=>{
+  if(bulkRolling||reconciling||rollInProgress())return;
+  clearConflict();reconcileRound=0;
+  bulkRolling=true;
+  $("rollAllBtn").disabled=true;$("rollAllBtn").textContent="开摇中…";
+  const n=getDiceMeta().length;
+  getDiceMeta().forEach((m,i)=>setTimeout(()=>{if(bulkRolling)rollOne(m.key);},i*STEP_MS));
+  setTimeout(()=>{if(!bulkRolling)return;bulkRolling=false;afterRoll();},n*STEP_MS+SPIN_MS+80);
+});
+$("rerollBtn").addEventListener("click",()=>{
+  if(state.crazyUsed||reconciling)return;
+  state.crazyUsed=true;
+  state.faces.task=pickN(state.mode==="i"?CRAZY_I:CRAZY,6);
+  state._crazyFilled=true;
+  state.rolled.task=false;
+  reconcileRound=0;clearConflict();
+  rollOne("task",true);
+  const btn=$("rerollBtn");
+  btn.disabled=true;btn.textContent="命运已加码（次数用完）";
+  saveState();
 });
 
-/* ============ 冲突协调（仅一键开摇后触发，不干预手动单摇） ============ */
-function rollCompatible(key,rejectFn){
-  if(rolling[key]||(rollCount[key]||0)>=3)return false;
+/* ============ 冲突协调：只在真正冲突时重摇，按骰子合并规则，最多两轮 ============ */
+function conflictRules(){
+  const byKey={};
+  const t=state.results.theme||"",rule=state.results.rule||"",
+        limit=state.results.limit||"",fresh=state.results.fresh||"";
+  const add=(k,fn,label)=>{
+    const v=state.results[k];
+    if(v&&fn(v))(byKey[k]=byKey[k]||[]).push([fn,label]);
+  };
+  if(t.includes("发呆"))add("rule",v=>v.includes("6000步")||v.includes("广场舞"),"发呆主题 × 暴走规则");
+  if(t.includes("咖啡店")||t.includes("苍蝇馆子"))add("limit",v=>v.includes("预算20元"),"咖啡/馆子 × 20 元预算");
+  if(t.includes("菜市场")||t.includes("晨市"))add("rule",v=>v.includes("广场舞"),"菜市场 × 广场舞");
+  if(t.includes("糖水"))add("limit",v=>v.includes("甜咸各"),"糖水 × 甜咸硬指标");
+  if(t.includes("早茶"))add("rule",v=>v.includes("每20分钟"),"早茶 × 高频进店");
+  if(t.includes("夜市"))add("fresh",v=>v.includes("早茶"),"夜市 × 早茶新鲜事");
+  if(rule.includes("每20分钟")&&/预算(30|40)元/.test(limit))
+    add("limit",v=>/预算(30|40)元/.test(v),"高频进店 × 低预算");
+  if(fresh.includes("赤脚")&&rule.includes("6000步"))
+    add("rule",v=>v.includes("6000步"),"赤脚 × 6000 步");
+  if(state.mode==="i")
+    add("task",v=>/路人|搭讪|拼桌|聊满|邀请|说一句|点头微笑/.test(v),"i 人模式 × 社交任务");
+  return byKey;
+}
+function reconcile(){
+  if(reconciling||rollInProgress()||!allRolled())return;
+  const byKey=conflictRules();
+  const keys=Object.keys(byKey).filter(k=>getDiceMeta().some(m=>m.key===k));
+  if(!keys.length)return;
+  if(reconcileRound>=2){
+    showConflict("仍有 "+keys.length+" 处组合可能冲突，建议点「重新开一局」再摇一次");
+    return;
+  }
+  reconciling=true;reconcileRound++;
+  $("passBtn").disabled=true;$("rollAllBtn").disabled=true;$("rerollBtn").disabled=true;
+  let pending=keys.length,notes=0;
+  keys.forEach(k=>{
+    notes+=byKey[k].length;
+    const merged=v=>byKey[k].some(pair=>pair[0](v));
+    rollCompatible(k,merged,()=>{if(--pending===0)finishReconcile(notes);});
+  });
+}
+function finishReconcile(notes){
+  reconciling=false;
+  afterRoll();
+  showConflict("已自动协调 "+notes+" 处冲突，未占用摇动次数");
+}
+function rollCompatible(key,rejectFn,onDone){
+  if(rolling[key]||(rollCount[key]||0)>=3){onDone();return;}
   let faces,idx,tries=0;
-  do{
-    faces=optionPool(key);
-    idx=Math.floor(Math.random()*6);
-  }while(rejectFn(faces[idx])&&++tries<25);
-  if(rejectFn(faces[idx]))return false;
-  state.faces[key]=faces;
-  fillFaces(key,faces);
+  if(key==="task"&&state.crazyUsed&&state.faces.task){
+    faces=state.faces.task.slice();
+    do{idx=Math.floor(Math.random()*6);}while(rejectFn(faces[idx])&&++tries<25);
+  }else{
+    do{faces=optionPool(key);idx=Math.floor(Math.random()*6);}while(rejectFn(faces[idx])&&++tries<25);
+  }
+  if(rejectFn(faces[idx])){onDone();return;}
+  state.faces[key]=faces;fillFaces(key,faces);
   rolling[key]=true;
-  const myEpoch=epoch,cube=document.getElementById("cube-"+key),extra=720*2;
-  cube.style.transform=FACE_ROT[idx]
-    .replace(/rotateX\((-?\d+)deg\)/,(m,d)=>"rotateX("+(parseInt(d,10)+extra)+"deg)")
-    .replace(/rotateY\((-?\d+)deg\)/,(m,d)=>"rotateY("+(parseInt(d,10)+extra)+"deg)");
-  const st=document.getElementById("status-"+key);
+  const myEpoch=epoch,extra=1440;
+  faceIdx[key]=idx;spins[key]=extra;
+  $("cube-"+key).style.transform=applySpin(FACE_ROT[idx],extra);
+  const st=$("status-"+key);
   st.textContent="协调冲突中…";st.classList.remove("done");
   setTimeout(()=>{
     rolling[key]=false;
-    if(myEpoch!==epoch)return;
+    if(myEpoch!==epoch){onDone();return;}
     state.rolled[key]=true;
     state.results[key]=faces[idx];
-    st.textContent="已自动协调："+faces[idx].slice(0,10)+(faces[idx].length>10?"…":"");
-    st.classList.add("done");
-  },1150);
-  return true;
+    refreshStatus(key);syncCheckinButtons();saveState();
+    onDone();
+  },SPIN_MS);
 }
-function reconcile(){
-  const t=state.results.theme;
-  const pending=[];
-  // 公园：发呆主题，拒绝暴走与广场舞
-  if(t&&t.includes("发呆")){
-    pending.push(["rule",v=>v.includes("6000步")||v.includes("广场舞")]);
-  }
-  // 随机/美食：咖啡店、苍蝇馆子，拒绝20元预算
-  if(t&&(t.includes("咖啡店")||t.includes("苍蝇馆子"))){
-    pending.push(["limit",v=>v.includes("预算20元")]);
-  }
-  // 社区/随机：菜市场、晨市，拒绝广场舞
-  if(t&&(t.includes("菜市场")||t.includes("晨市"))){
-    pending.push(["rule",v=>v.includes("广场舞")]);
-  }
-  // 美食：糖水扫街拒绝甜咸硬指标，早茶拒绝高频进店，夜市拒绝早茶新鲜事
-  if(t&&t.includes("糖水")){
-    pending.push(["limit",v=>v.includes("甜咸各")]);
-  }
-  if(t&&t.includes("早茶")){
-    pending.push(["rule",v=>v.includes("每20分钟")]);
-  }
-  if(t&&t.includes("夜市")){
-    pending.push(["fresh",v=>v.includes("早茶")]);
-  }
-  // 跨骰子：高频进店规则拒绝低预算，赤脚新鲜事拒绝长距离暴走
-  const rule=state.results.rule,limit=state.results.limit,fresh=state.results.fresh;
-  if(rule&&rule.includes("每20分钟")&&/预算(30|40)元/.test(limit)){
-    pending.push(["limit",v=>/预算(30|40)元/.test(v)]);
-  }
-  if(fresh&&fresh.includes("赤脚")&&rule&&rule.includes("6000步")){
-    pending.push(["rule",v=>v.includes("6000步")]);
-  }
-  let failed=false;
-  pending.forEach(([k,fn])=>{if(!rollCompatible(k,fn))failed=true;});
-  if(failed){
-    const st=document.getElementById("status-theme");
-    if(st)st.textContent="存在冲突且协调失败，建议整局重摇";
-  }
-}
-document.getElementById("rerollBtn").addEventListener("click",()=>{
-  if(state.crazyUsed)return;
-  state.crazyUsed=true;
-  state.faces.task=pickN(CRAZY,6);
-  state._crazyFilled=true;
-  state.rolled.task=false;
-  rollOne("task",true);
-  const btn=document.getElementById("rerollBtn");
-  btn.disabled=true;btn.textContent="命运已加重（次数用完）";
-});
 
 /* ============ 整局重置 ============ */
 function resetAll(){
   epoch++;
   for(const k in rolling)rolling[k]=false;
   for(const k in rollCount)delete rollCount[k];
+  for(const k in faceIdx)delete faceIdx[k];
+  for(const k in spins)delete spins[k];
   state.faces={};state.results={};state.rolled={};
   state.crazyUsed=false;state._crazyFilled=false;state.passNo=null;
-  state.reviewStars=0;state.highlight=null;state._autoRoll=false;
+  state.reviewStars=0;state.highlight=null;
   state.checkins={};state.finalReward=null;
-  setReviewEnabled(false);
-  document.getElementById("reviewCanvas").classList.remove("show");
-  document.getElementById("reviewSaveBtn").style.display="none";
-  document.getElementById("reviewComment").textContent="先打星，再点亮点";
-  document.querySelectorAll(".star-btn").forEach(b=>b.classList.remove("on"));
-  document.querySelectorAll(".hl-chip").forEach(b=>b.classList.remove("on"));
+  bulkRolling=false;reconciling=false;reconcileRound=0;
+  clearConflict();setReviewEnabled(false);
+  ["reviewCanvas","rewardCanvas"].forEach(id=>$(id).classList.remove("show"));
+  ["reviewSaveBtn","rewardSaveBtn"].forEach(id=>$(id).style.display="none");
+  $("reviewComment").textContent="先打星，再点亮点";
+  document.querySelectorAll(".star-btn").forEach(b=>{b.classList.remove("on");b.setAttribute("aria-pressed","false");});
+  document.querySelectorAll(".hl-chip").forEach(b=>{b.classList.remove("on");b.setAttribute("aria-pressed","false");});
   getDiceMeta().forEach(m=>{
-    const cube=document.getElementById("cube-"+m.key);
-    if(!cube)return;
+    const cube=$("cube-"+m.key);if(!cube)return;
     cube.style.transform="";
     cube.closest(".scene").classList.remove("exhausted");
     cube.querySelectorAll(".face").forEach((el,i)=>{
       el.className="face f"+(i+1);el.innerHTML='<span class="q">?</span>';
     });
-    const st=document.getElementById("status-"+m.key);
-    st.textContent="待摇";st.classList.remove("done");
+    const st=$("status-"+m.key);st.textContent="待摇";st.classList.remove("done");
   });
-  const rb=document.getElementById("rerollBtn");
-  rb.disabled=true;rb.textContent="反悔重摇（仅剩 1 次）";
-  document.getElementById("passBtn").disabled=true;
-  const rwCanvas=document.getElementById("rewardCanvas");
-  rwCanvas.classList.remove("show");
-  document.getElementById("rewardSaveBtn").style.display="none";
-  document.getElementById("rewardCardBtn").disabled=true;
+  const rb=$("rerollBtn");rb.disabled=true;rb.textContent="命运加码（1 次）";
+  $("passBtn").disabled=true;
+  $("fateLinkBtn").disabled=true;$("fateTextBtn").disabled=true;
+  $("rollAllBtn").disabled=false;$("rollAllBtn").textContent="一键开摇";
+  $("rewardCardBtn").disabled=true;
+  $("finalReward").classList.remove("show");$("finalReward").innerHTML="";
   rewardModal.classList.remove("show");checkinModal.classList.remove("show");
-  renderCheckin();
-  hidePass();
+  resetTimer();renderCheckin();hidePass();saveState();
 }
+$("resetBtn").addEventListener("click",resetAll);
 function bindSwitch(groupId,attr,stateKey){
-  document.getElementById(groupId).addEventListener("click",e=>{
-    const btn=e.target.closest("button");if(!btn||btn.classList.contains("active"))return;
+  $(groupId).addEventListener("click",e=>{
+    const btn=e.target.closest("button");
+    if(!btn||btn.disabled||btn.classList.contains("active"))return;
     document.querySelectorAll("#"+groupId+" .chip").forEach(b=>b.classList.remove("active"));
     btn.classList.add("active");
-    state[stateKey]=btn.dataset[attr];
-    if(groupId==="freshGroup"){state.freshEnabled=btn.dataset.fresh==="on";renderDiceGrid();}
-    if(groupId==="sceneGroup")renderDiceGrid();
-    resetAll();
+    if(groupId==="freshGroup")state.freshEnabled=btn.dataset.fresh==="on";
+    else state[stateKey]=btn.dataset[attr];
+    renderDiceGrid();resetAll();
   });
 }
 bindSwitch("sceneGroup","scene","scene");
 bindSwitch("modeGroup","mode","mode");
 bindSwitch("freshGroup","fresh","freshEnabled");
 
-/* ============ 打卡抽盲盒 ============ */
+/* ============ 打卡与盲盒 ============ */
 let pendingKey=null;
-const checkinModal=document.getElementById("checkinModal");
-const rewardModal=document.getElementById("rewardModal");
-const photoInput=document.getElementById("photoInput");
+const checkinModal=$("checkinModal"),rewardModal=$("rewardModal"),photoInput=$("photoInput");
 function openCheckin(key){
-  if(!state.rolled[key]||state.checkins[key])return;
+  if(GUEST||!state.rolled[key]||state.checkins[key])return;
   pendingKey=key;
-  document.getElementById("checkinTarget").textContent="完成项："+reviewName(key);
+  $("checkinTarget").textContent="完成项："+diceLabel(key);
   checkinModal.classList.add("show");
 }
 function closeCheckin(){checkinModal.classList.remove("show");pendingKey=null;}
-document.getElementById("checkinCancel").addEventListener("click",closeCheckin);
+$("checkinCancel").addEventListener("click",closeCheckin);
 checkinModal.addEventListener("click",e=>{if(e.target===checkinModal)closeCheckin();});
-document.getElementById("photoCheckin").addEventListener("click",()=>{
-  photoInput.value="";photoInput.click();
-});
+function compressImage(dataUrl,cb){
+  const img=new Image();
+  img.onload=()=>{
+    const max=1000,scale=Math.min(1,max/Math.max(img.width,img.height));
+    const cv=document.createElement("canvas");
+    cv.width=Math.max(1,Math.round(img.width*scale));cv.height=Math.max(1,Math.round(img.height*scale));
+    const c=cv.getContext("2d");
+    c.fillStyle="#FFFFFF";c.fillRect(0,0,cv.width,cv.height);
+    c.drawImage(img,0,0,cv.width,cv.height);
+    cb(cv.toDataURL("image/jpeg",0.78));
+  };
+  img.onerror=()=>cb(dataUrl);
+  img.src=dataUrl;
+}
+$("photoCheckin").addEventListener("click",()=>{photoInput.value="";photoInput.click();});
 photoInput.addEventListener("change",()=>{
   const f=photoInput.files&&photoInput.files[0];if(!f)return;
+  if(f.type&&f.type.indexOf("image/")!==0){alert("请选择图片文件");return;}
+  const k=pendingKey;
   const rd=new FileReader();
-  rd.onload=()=>{const k=pendingKey;closeCheckin();finishCheckin(k,"photo",rd.result);};
+  rd.onload=()=>compressImage(rd.result,data=>{closeCheckin();finishCheckin(k,"photo",data);});
   rd.readAsDataURL(f);
 });
-document.getElementById("locCheckin").addEventListener("click",e=>{
+$("locCheckin").addEventListener("click",e=>{
+  const k=pendingKey;if(!k)return;
   if(!navigator.geolocation){alert("当前浏览器不支持定位，改用拍照打卡吧");return;}
-  const b=e.target;b.disabled=true;b.textContent="定位中…";
+  const b=e.currentTarget;b.disabled=true;b.textContent="定位中…";
   navigator.geolocation.getCurrentPosition(
-    pos=>{b.disabled=false;b.textContent="定位打卡";const k=pendingKey;closeCheckin();
+    pos=>{b.disabled=false;b.textContent="定位打卡";closeCheckin();
       finishCheckin(k,"location",[pos.coords.latitude,pos.coords.longitude]);},
     err=>{b.disabled=false;b.textContent="定位打卡";
-      alert("定位失败（"+err.message+"），改用拍照打卡吧");},
+      alert("定位失败，改用拍照打卡吧（"+err.message+"）");},
     {timeout:8000,enableHighAccuracy:false});
 });
 function finishCheckin(key,type,data){
   if(!key)return;
-  state.checkins[key]={type,data};
-  pendingKey=null;
-  renderCheckin();syncCheckinButtons();
+  state.checkins[key]={type:type,data:data,at:Date.now()};
+  renderCheckin();syncCheckinButtons();saveState();
 }
-// 行程结束：统一抽取一个盲盒
-document.getElementById("drawBlindBtn").addEventListener("click",()=>{
+function deleteCheckin(key){
+  if(state.finalReward){alert("盲盒已抽取，本局打卡记录已归档");return;}
+  delete state.checkins[key];
+  renderCheckin();syncCheckinButtons();saveState();
+}
+function checkinNeed(){return Math.ceil(getDiceMeta().length/2);}
+$("drawBlindBtn").addEventListener("click",()=>{
   const entries=getDiceMeta().filter(m=>state.checkins[m.key]);
-  if(!entries.length)return;
+  if(entries.length<checkinNeed()||state.finalReward)return;
   const reward=REWARDS[Math.floor(Math.random()*REWARDS.length)];
   state.finalReward=reward;
-  document.getElementById("rewardTitle").textContent=reward;
+  $("rewardTitle").textContent=reward;
   rewardModal.classList.add("show");
   renderCheckin();
 });
-document.getElementById("rewardOk").addEventListener("click",()=>rewardModal.classList.remove("show"));
+$("rewardOk").addEventListener("click",()=>rewardModal.classList.remove("show"));
 rewardModal.addEventListener("click",e=>{if(e.target===rewardModal)rewardModal.classList.remove("show");});
 function renderCheckin(){
-  const entries=getDiceMeta().filter(m=>state.checkins[m.key]);
-  const wall=document.getElementById("photoWall");
+  const all=getDiceMeta();
+  const entries=all.filter(m=>state.checkins[m.key]);
+  const wall=$("photoWall");
   const photos=entries.filter(m=>state.checkins[m.key].type==="photo");
   wall.classList.toggle("empty",photos.length===0);
   wall.innerHTML=photos.map(m=>{
     const c=state.checkins[m.key];
-    return '<div class="photo-item"><img src="'+c.data+'" alt=""><span class="tag">'+reviewName(m.key)+'</span></div>';
+    return '<div class="photo-item"><img src="'+c.data+'" alt=""><span class="tag">'+diceLabel(m.key)+'</span></div>';
   }).join("");
-  // 打卡清单
-  const cl=document.getElementById("checkinList");
+  const cl=$("checkinList");
   cl.classList.toggle("empty",entries.length===0);
   cl.innerHTML=entries.map((m,i)=>{
     const c=state.checkins[m.key];
+    const type=c.type==="photo"?"拍照":(c.type==="location"&&Array.isArray(c.data)
+      ?"定位 "+c.data[0].toFixed(4)+", "+c.data[1].toFixed(4):"定位");
     return '<div class="checkin-row"><span class="idx">'+(i+1)+'</span>'+
-      '<span class="rname">'+reviewName(m.key)+'</span><span class="rtype">'+
-      (c.type==="photo"?"拍照":"定位")+'打卡</span></div>';
+      '<span class="rname">'+diceLabel(m.key)+'</span><span class="rtype">'+type+'打卡</span>'+
+      '<button class="del-btn" data-key="'+m.key+'" aria-label="删除'+diceLabel(m.key)+'打卡">×</button></div>';
   }).join("");
-  // 抽盲盒按钮：至少一次打卡即可
-  const drawBtn=document.getElementById("drawBlindBtn");
-  drawBtn.disabled=entries.length===0||!!state.finalReward;
+  cl.querySelectorAll(".del-btn").forEach(b=>b.addEventListener("click",()=>deleteCheckin(b.dataset.key)));
+  const need=checkinNeed();
+  $("checkinProgress").textContent="已打卡 "+entries.length+" / "+all.length+" 项 · "+
+    (state.finalReward?"盲盒已抽取":(entries.length>=need?"可以抽盲盒了":"再打卡 "+(need-entries.length)+" 项即可抽盲盒"));
+  const drawBtn=$("drawBlindBtn");
+  drawBtn.disabled=entries.length<need||!!state.finalReward;
   drawBtn.textContent=state.finalReward?"盲盒已抽取":"抽取今日盲盒";
-  // 最终奖励
-  const fr=document.getElementById("finalReward");
+  const fr=$("finalReward");
   fr.classList.toggle("show",!!state.finalReward);
   if(state.finalReward)fr.innerHTML='<div class="fr-card"><div class="fr-label">今日盲盒</div>'+
     '<div class="fr-name">'+state.finalReward+'</div></div>';
-  document.getElementById("rewardCardBtn").disabled=!state.finalReward;
+  $("rewardCardBtn").disabled=!state.finalReward;
+  saveState();
 }
 
-/* ============ 计时器 ============ */
-let timerSec=0,timerHandle=null;
-const timerNum=document.getElementById("timerNum");
+/* ============ 计时器（时间戳差值，切后台不丢秒） ============ */
 const fmt=s=>String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
-document.getElementById("timerStart").addEventListener("click",e=>{
-  if(timerHandle){clearInterval(timerHandle);timerHandle=null;e.target.textContent="继续";}
-  else{e.target.textContent="暂停";timerHandle=setInterval(()=>{timerSec++;timerNum.textContent=fmt(timerSec);},1000);}
-});
-document.getElementById("timerReset").addEventListener("click",()=>{
-  clearInterval(timerHandle);timerHandle=null;timerSec=0;
-  timerNum.textContent="00:00";document.getElementById("timerStart").textContent="开始";
-});
+function renderTimer(){$("timerNum").textContent=fmt(timerSec);}
+function startTimer(resume){
+  if(timerHandle)clearInterval(timerHandle);
+  if(!resume)timerStartAt=Date.now();
+  timerHandle=setInterval(()=>{
+    if(timerStartAt)timerSec=timerBase+Math.floor((Date.now()-timerStartAt)/1000);
+    renderTimer();
+  },250);
+  $("timerStart").textContent="暂停";
+  if(resume&&timerStartAt){timerSec=timerBase+Math.floor((Date.now()-timerStartAt)/1000);renderTimer();}
+}
+function pauseTimer(){
+  if(timerStartAt){timerSec=timerBase+Math.floor((Date.now()-timerStartAt)/1000);timerBase=timerSec;timerStartAt=null;}
+  if(timerHandle)clearInterval(timerHandle);timerHandle=null;
+  $("timerStart").textContent="继续";renderTimer();saveState();
+}
+function resetTimer(){
+  if(timerHandle)clearInterval(timerHandle);timerHandle=null;
+  timerBase=0;timerStartAt=null;timerSec=0;
+  renderTimer();$("timerStart").textContent="开始";
+}
+$("timerStart").addEventListener("click",()=>{timerHandle?pauseTimer():(startTimer(false),saveState());});
+$("timerReset").addEventListener("click",()=>{resetTimer();saveState();});
 
-/* ============ 通行证 ============ */
-const canvas=document.getElementById("passCanvas"),ctx=canvas.getContext("2d");
-function wrapText(text,x,y,maxW,lh){
+/* ============ Canvas 绘制与保存 / 分享 ============ */
+const canvas=$("passCanvas"),ctx=canvas.getContext("2d");
+const rCanvas=$("reviewCanvas"),rctx=rCanvas.getContext("2d");
+const rewardCanvas=$("rewardCanvas"),rwctx=rewardCanvas.getContext("2d");
+function wrapText(c,text,x,y,maxW,lh){
   let line="";
   for(const ch of text){
-    if(ctx.measureText(line+ch).width>maxW&&line){ctx.fillText(line,x,y);y+=lh;line=ch;}
+    if(c.measureText(line+ch).width>maxW&&line){c.fillText(line,x,y);y+=lh;line=ch;}
     else line+=ch;
   }
-  ctx.fillText(line,x,y);return y;
+  c.fillText(line,x,y);return y;
 }
-document.getElementById("passBtn").addEventListener("click",()=>{
-  if(!state.passNo)state.passNo="NO."+String(Math.floor(1000+Math.random()*9000));
+function wrapTextCenter(c,text,x,y,maxW,lh){
+  const lines=[];let line="";
+  for(const ch of text){
+    if(c.measureText(line+ch).width>maxW&&line){lines.push(line);line=ch;}
+    else line+=ch;
+  }
+  if(line)lines.push(line);
+  lines.forEach(l=>{c.fillText(l,x,y);y+=lh;});
+  return y;
+}
+function countLines(c,text,maxW){
+  let n=1,line="";
+  for(const ch of text){
+    if(c.measureText(line+ch).width>maxW&&line){n++;line=ch;}
+    else line+=ch;
+  }
+  return n;
+}
+function dataUrlToBlob(url){
+  const parts=url.split(","),bin=atob(parts[1]),arr=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(0);
+  return new Blob([arr],{type:"image/png"});
+}
+function saveCanvas(cv,filename,title){
+  const download=()=>{
+    const a=document.createElement("a");a.download=filename;a.href=cv.toDataURL("image/png");a.click();
+  };
+  const mobile=window.matchMedia&&window.matchMedia("(max-width:560px)").matches;
+  if(mobile&&navigator.share&&navigator.canShare){
+    try{
+      const file=new File([dataUrlToBlob(cv.toDataURL("image/png"))],filename,{type:"image/png"});
+      if(navigator.canShare({files:[file]})){
+        navigator.share({files:[file],title:title,text:"让命运决定今天去哪走"})
+          .catch(err=>{if(!err||err.name!=="AbortError")download();});
+        return;
+      }
+    }catch(e){/* 分享不可用时回退下载 */}
+  }
+  download();
+}
+function drawPass(){
+  if(!allRolled())return;
+  if(!state.passNo){
+    const d=new Date();
+    state.passNo="NO."+String(d.getFullYear()).slice(2)+String(d.getMonth()+1).padStart(2,"0")+
+      String(d.getDate()).padStart(2,"0")+"-"+String(Math.floor(1000+Math.random()*9000));
+  }
   const today=new Date();
-  const dateStr=today.getFullYear()+"."+String(today.getMonth()+1).padStart(2,"0")+"."+String(today.getDate()).padStart(2,"0");
-  const W=750,H=1050;
+  const dateStr=(GUEST&&GUEST.d)?GUEST.d:
+    (today.getFullYear()+"."+String(today.getMonth()+1).padStart(2,"0")+"."+String(today.getDate()).padStart(2,"0"));
+  const W=750;
+  const spotLabelMap={park:"目标公园",community:"目标社区",food:"美食街区",random:"目的地与就近地铁"};
+  const rows=[["今日主题",state.results.theme],[spotLabelMap[state.scene],state.results.station],
+    ["行路规则",state.results.rule],["任务卡",state.results.task],["限制条件",state.results.limit]];
+  if(state.results.fresh)rows.push(["新鲜事挑战",state.results.fresh]);
+  ctx.font="500 26px -apple-system,'PingFang SC',sans-serif";
+  let need=238;
+  rows.forEach(([,v])=>{need+=36+countLines(ctx,String(v||""),W-172)*36+30;});
+  const H=Math.max(1050,Math.ceil(need+170));
+  canvas.height=H;
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle="#F6F4EC";ctx.fillRect(0,0,W,H);
   ctx.strokeStyle="#2F6B4F";ctx.lineWidth=4;ctx.strokeRect(36,36,W-72,H-72);
@@ -895,20 +1263,14 @@ document.getElementById("passBtn").addEventListener("click",()=>{
   ctx.font="600 19px -apple-system,'PingFang SC',sans-serif";ctx.fillStyle="#E07A3E";
   ctx.fillText(state.passNo+"　|　"+dateStr+"　|　"+(state.mode==="i"?"i 人":"e 人")+"模式",W/2,168);
   ctx.font="600 18px -apple-system,'PingFang SC',sans-serif";ctx.fillStyle="#2F6B4F";
-  const timeText=timerSec>0?("行程用时 "+fmt(timerSec)):"行程用时 未计时";
-  ctx.fillText(timeText,W/2,200);
+  ctx.fillText(timerSec>0?("行程用时 "+fmt(timerSec)):"行程用时 未计时",W/2,200);
   ctx.textAlign="left";
   let y=238;
-  const spotLabelMap={park:"目标公园",community:"目标社区",food:"美食街区",random:"出发站点"};
-  const stationLabel=spotLabelMap[state.scene];
-  const rows=[["今日主题",state.results.theme],[stationLabel,state.results.station],
-    ["行路规则",state.results.rule],["任务卡",state.results.task],["限制条件",state.results.limit]];
-  if(state.results.fresh)rows.push(["新鲜事挑战",state.results.fresh]);
   rows.forEach(([k,v])=>{
     ctx.fillStyle="#E07A3E";ctx.font="700 22px -apple-system,'PingFang SC',sans-serif";
     ctx.fillText(k,86,y);y+=36;
     ctx.fillStyle="#23352B";ctx.font="500 26px -apple-system,'PingFang SC',sans-serif";
-    y=wrapText(v,86,y,W-172,36)+30;
+    y=wrapText(ctx,String(v||""),86,y,W-172,36)+30;
   });
   ctx.save();
   ctx.strokeStyle="#E07A3E";ctx.lineWidth=3;
@@ -918,47 +1280,35 @@ document.getElementById("passBtn").addEventListener("click",()=>{
   ctx.restore();
   ctx.textAlign="center";ctx.fillStyle="#6E7E73";ctx.font="500 18px -apple-system,'PingFang SC',sans-serif";
   ctx.fillText("City Walk 骰子 · 更多城市评论区点菜",W/2,H-92);
-  canvas.classList.add("show");
-  document.getElementById("downloadBtn").style.display="inline-block";
-});
-document.getElementById("downloadBtn").addEventListener("click",()=>{
-  const a=document.createElement("a");
-  a.download=SCENE_TITLE[state.scene]+"_"+state.passNo+".png";
-  a.href=canvas.toDataURL("image/png");a.click();
+  canvas.classList.add("show");$("downloadBtn").style.display="inline-block";
+  if(!GUEST)upsertHistory(dateStr);
+  saveState();
+}
+$("passBtn").addEventListener("click",drawPass);
+$("downloadBtn").addEventListener("click",()=>{
+  saveCanvas(canvas,SCENE_TITLE[state.scene]+"_"+state.passNo+".png","今日漫游通行证");
 });
 
-/* ============ 行程复盘卡 ============ */
+/* ============ 复盘卡 ============ */
 const STAR_SVG='<svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.8 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z"/></svg>';
-const starWrap=document.getElementById("reviewStars");
+const starWrap=$("reviewStars");
 for(let i=1;i<=5;i++){
   const b=document.createElement("button");
   b.className="star-btn";b.innerHTML=STAR_SVG;b.dataset.n=i;
+  b.setAttribute("aria-label","评分 "+i+" 星");b.setAttribute("aria-pressed","false");
   b.addEventListener("click",()=>{state.reviewStars=i;refreshReview();drawReviewCard();});
   starWrap.appendChild(b);
 }
-setReviewEnabled(false);
-const COMMENTS={
-  5:"命运在线，建议封神，下次还让它带",
-  4:"安排得明明白白，扣一颗星怕它骄傲",
-  3:"中规中矩，命运今天摸鱼了",
-  2:"骰子状态可疑，建议再摇一局挽回",
-  1:"已被列入黑名单，评论区公开审判"
-};
-function reviewName(key){
-  const spotNameMap={park:"公园",community:"社区",food:"美食区"};
-  if(key==="station"&&spotNameMap[state.scene])return spotNameMap[state.scene];
-  return getDiceMeta().find(m=>m.key===key).name;
-}
 function refreshReview(){
   document.querySelectorAll(".star-btn").forEach(b=>{
-    b.classList.toggle("on",parseInt(b.dataset.n,10)<=state.reviewStars);
+    const on=parseInt(b.dataset.n,10)<=state.reviewStars;
+    b.classList.toggle("on",on);b.setAttribute("aria-pressed",on?"true":"false");
   });
-  const c=document.getElementById("reviewComment");
+  const c=$("reviewComment");
   if(!state.reviewStars){c.textContent="先打星，再点亮点";return;}
-  const hl=state.highlight?("｜亮点："+reviewName(state.highlight)):"";
+  const hl=state.highlight?("｜亮点："+diceLabel(state.highlight)):"";
   c.textContent=COMMENTS[state.reviewStars]+hl;
 }
-const rCanvas=document.getElementById("reviewCanvas"),rctx=rCanvas.getContext("2d");
 function starPath(cx,cy,r){
   rctx.beginPath();
   for(let i=0;i<5;i++){
@@ -970,9 +1320,10 @@ function starPath(cx,cy,r){
   }
   rctx.closePath();
 }
-function drawReviewCard(){
+function drawReviewCard(save){
   if(!state.reviewStars)return;
-  const W=750,H=560;
+  const W=750,H=620;
+  rCanvas.height=H;
   rctx.clearRect(0,0,W,H);
   rctx.fillStyle="#F6F4EC";rctx.fillRect(0,0,W,H);
   rctx.strokeStyle="#2F6B4F";rctx.lineWidth=4;rctx.strokeRect(36,36,W-72,H-72);
@@ -981,43 +1332,38 @@ function drawReviewCard(){
   rctx.fillText("漫游复盘卡",W/2,118);
   rctx.font="600 18px -apple-system,'PingFang SC',sans-serif";rctx.fillStyle="#E07A3E";
   rctx.fillText(state.passNo||"尚未生成通行证编号",W/2,158);
-  // 五颗星
   const gap=88,startX=W/2-2*gap;
   for(let i=1;i<=5;i++){
     starPath(startX+(i-1)*gap,238,34);
     rctx.fillStyle=i<=state.reviewStars?"#E07A3E":"#D8D2C4";rctx.fill();
   }
-  // 亮点（绘制防御：结果不存在则不画亮点行）
   const hlVal=state.results[state.highlight];
+  let y=306;
   if(state.highlight&&hlVal){
     rctx.fillStyle="#2F6B4F";rctx.font="700 22px -apple-system,'PingFang SC',sans-serif";
-    rctx.fillText("本程亮点 · "+reviewName(state.highlight),W/2,330);
+    rctx.fillText("本程亮点 · "+diceLabel(state.highlight),W/2,y);y+=42;
     rctx.fillStyle="#23352B";rctx.font="500 24px -apple-system,'PingFang SC',sans-serif";
-    rctx.fillText(hlVal,W/2,372,W-140);
-  }
+    y=wrapTextCenter(rctx,String(hlVal),W/2,y,W-140,32)+18;
+  }else y=340;
   rctx.fillStyle="#224E39";rctx.font="700 26px -apple-system,'PingFang SC',sans-serif";
-  rctx.fillText(COMMENTS[state.reviewStars],W/2,state.highlight?440:400,W-140);
+  wrapTextCenter(rctx,COMMENTS[state.reviewStars],W/2,y+14,W-140,34);
   rctx.fillStyle="#6E7E73";rctx.font="500 17px -apple-system,'PingFang SC',sans-serif";
-  rctx.fillText("City Walk 骰子 · 赛博摆摊第 N 单",W/2,H-78);
-  rCanvas.classList.add("show");
-  document.getElementById("reviewSaveBtn").style.display="inline-block";
+  rctx.fillText("City Walk 骰子 · 赛博摆摊第 N 单",W/2,H-56);
+  rCanvas.classList.add("show");$("reviewSaveBtn").style.display="inline-block";
+  if(save!==false)saveState();
 }
-document.getElementById("reviewSaveBtn").addEventListener("click",()=>{
-  const a=document.createElement("a");
-  a.download="漫游复盘卡_"+(state.passNo||"")+".png";
-  a.href=rCanvas.toDataURL("image/png");a.click();
+$("reviewSaveBtn").addEventListener("click",()=>{
+  saveCanvas(rCanvas,"漫游复盘卡_"+(state.passNo||"")+".png","行程复盘卡");
 });
 
 /* ============ 今日小确幸收集卡 ============ */
-const rewardCanvas=document.getElementById("rewardCanvas");
-const rwctx2=rewardCanvas.getContext("2d");
-document.getElementById("rewardCardBtn").addEventListener("click",()=>{
-  const entries=getDiceMeta().filter(m=>state.checkins[m.key]);
+function drawRewardCard(save){
   if(!state.finalReward)return;
+  const entries=getDiceMeta().filter(m=>state.checkins[m.key]);
   const photoN=entries.filter(m=>state.checkins[m.key].type==="photo").length;
   const W=750,H=760;
   rewardCanvas.height=H;
-  const c=rwctx2;
+  const c=rwctx;
   c.clearRect(0,0,W,H);
   c.fillStyle="#F6F4EC";c.fillRect(0,0,W,H);
   c.strokeStyle="#2F6B4F";c.lineWidth=4;c.strokeRect(36,36,W-72,H-72);
@@ -1028,32 +1374,281 @@ document.getElementById("rewardCardBtn").addEventListener("click",()=>{
   const dateStr=today.getFullYear()+"."+String(today.getMonth()+1).padStart(2,"0")+"."+String(today.getDate()).padStart(2,"0");
   c.font="600 19px -apple-system,'PingFang SC',sans-serif";c.fillStyle="#E07A3E";
   c.fillText(dateStr+" · 打卡 "+entries.length+" 项 · 照片 "+photoN+" 张",W/2,174);
-  // 最终盲盒：突出展示
   c.fillStyle="#FBEADD";c.fillRect(110,238,W-220,250);
   c.strokeStyle="#E07A3E";c.lineWidth=3;c.strokeRect(110,238,W-220,250);
   c.fillStyle="#E07A3E";c.font="700 20px -apple-system,'PingFang SC',sans-serif";
   c.fillText("今日盲盒",W/2,290);
   c.fillStyle="#23352B";c.font="800 34px -apple-system,'PingFang SC',sans-serif";
-  // 奖励名居中换行
-  const reward=state.finalReward;
-  if(c.measureText(reward).width>W-280){
-    const mid=Math.ceil(reward.length/2);
-    c.fillText(reward.slice(0,mid),W/2,380);c.fillText(reward.slice(mid),W/2,428);
-  }else c.fillText(reward,W/2,408);
+  wrapTextCenter(c,String(state.finalReward),W/2,380,W-280,48);
   c.fillStyle="#6E7E73";c.font="500 18px -apple-system,'PingFang SC',sans-serif";
   c.fillText("生活里的小美好，都替你收好啦",W/2,560);
   c.fillStyle="#224E39";c.font="700 24px -apple-system,'PingFang SC',sans-serif";
   c.fillText("愿你每天都被温柔以待",W/2,620);
   c.fillStyle="#6E7E73";c.font="500 17px -apple-system,'PingFang SC',sans-serif";
   c.fillText("City Walk 骰子 · 小确幸收集",W/2,664);
-  rewardCanvas.classList.add("show");
-  document.getElementById("rewardSaveBtn").style.display="inline-block";
+  rewardCanvas.classList.add("show");$("rewardSaveBtn").style.display="inline-block";
+  if(save!==false)saveState();
+}
+$("rewardCardBtn").addEventListener("click",()=>drawRewardCard());
+$("rewardSaveBtn").addEventListener("click",()=>{
+  saveCanvas(rewardCanvas,"今日小确幸卡_"+(state.passNo||"")+".png","今日小确幸卡");
 });
-document.getElementById("rewardSaveBtn").addEventListener("click",()=>{
-  const a=document.createElement("a");
-  a.download="今日小确幸卡_"+(state.passNo||"")+".png";
-  a.href=rewardCanvas.toDataURL("image/png");a.click();
-});
+
+/* ============ 足迹册：历史记录 + 集章 + 自动去重 ============ */
+const SCENE_NAME={random:"随机版",park:"公园版",community:"社区版",food:"美食版"};
+const FATE_SPOT_LABEL={random:"目的地",park:"目标公园",community:"目标社区",food:"美食街区"};
+const ALL_SPOTS=(()=>{
+  const s=new Set();
+  [].concat(PARKS,COMMUNITY_SPOTS,FOOD_SPOTS).forEach(p=>{if(p&&p[0])s.add(String(p[0]));});
+  Object.keys(RANDOM_SPOTS).forEach(k=>RANDOM_SPOTS[k].forEach(p=>{if(p&&p[0])s.add(String(p[0]));}));
+  return s;
+})();
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>
+  ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
+const spotName=s=>String(s==null?"":s).split(" · ")[0];
+function todayISO(d){
+  const x=d||new Date();
+  return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");
+}
+function readHistory(){
+  try{const h=JSON.parse(localStorage.getItem(HIST_KEY)||"[]");return Array.isArray(h)?h:[];}
+  catch(e){return [];}
+}
+function writeHistory(h){
+  try{localStorage.setItem(HIST_KEY,JSON.stringify(h));}
+  catch(e){console.warn("足迹写入失败",e);}
+}
+/* 同一张通行证只记一程；打星、打卡、盲盒的结果由 saveState 持续回填 */
+function upsertHistory(dateStr){
+  if(GUEST||!state.passNo)return;
+  const h=readHistory();
+  const date=(dateStr||todayISO()).replace(/\./g,"-");
+  let rec=h.find(x=>x.passNo===state.passNo);
+  if(!rec){rec={passNo:state.passNo,ts:Date.now()};h.push(rec);}
+  Object.assign(rec,{
+    date:date,scene:state.scene,mode:state.mode,freshEnabled:state.freshEnabled,
+    results:Object.assign({},state.results),
+    spot:spotName(state.results.station),theme:state.results.theme||"",
+    stars:state.reviewStars||0,highlight:state.highlight||null,
+    checkinN:Object.keys(state.checkins||{}).length,reward:state.finalReward||null
+  });
+  h.sort((a,b)=>(b.ts||0)-(a.ts||0));
+  if(h.length>100)h.length=100;
+  writeHistory(h);renderFootprint();
+}
+function syncHistoryFromState(){
+  if(!state.passNo)return;
+  const h=readHistory(),rec=h.find(x=>x.passNo===state.passNo);
+  if(!rec)return;
+  const patch={stars:state.reviewStars||0,highlight:state.highlight||null,
+    checkinN:Object.keys(state.checkins||{}).length,reward:state.finalReward||null};
+  let changed=false;
+  Object.keys(patch).forEach(k=>{if(rec[k]!==patch[k]){rec[k]=patch[k];changed=true;}});
+  if(changed){writeHistory(h);scheduleFootprint();}
+}
+function recentSpots(n){
+  return readHistory().slice(0,n).map(r=>r.spot).filter(Boolean);
+}
+let footTimer=null;
+function scheduleFootprint(){clearTimeout(footTimer);footTimer=setTimeout(renderFootprint,120);}
+function renderFootprint(){
+  const h=readHistory();
+  const uniq={};h.forEach(r=>{if(r.spot)uniq[r.spot]=1;});
+  const got=Object.keys(uniq).length,total=ALL_SPOTS.size;
+  const weekN=h.filter(r=>(r.ts||0)>=Date.now()-7*86400000).length;
+  const rated=h.filter(r=>r.stars>0);
+  const avg=rated.length?(rated.reduce((s,r)=>s+r.stars,0)/rated.length).toFixed(1):"—";
+  $("footStats").innerHTML=[[h.length,"累计漫游"],[got+" / "+total,"解锁地点"],
+    [weekN,"近 7 天"],[avg,"平均星级"]]
+    .map(([v,k])=>'<div class="foot-stat"><b>'+v+'</b><span>'+k+'</span></div>').join("");
+  $("stampFill").style.width=(total?Math.min(100,got/total*100):0)+"%";
+  $("stampLabel").textContent="集章进度：走过 "+got+" 个地点 / 全城 "+total+
+    " 个 · 最近 3 次去过的地点会自动避开";
+  const counts={};h.forEach(r=>{if(r.date)counts[r.date]=(counts[r.date]||0)+1;});
+  const cal=$("footCal");cal.innerHTML="";
+  const now=new Date();now.setHours(0,0,0,0);
+  const start=new Date(now);start.setDate(start.getDate()-((now.getDay()+6)%7)-11*7);
+  const todayTs=now.getTime();
+  for(let i=0;i<84;i++){
+    const d=new Date(start);d.setDate(d.getDate()+i);
+    const key=todayISO(d),cell=document.createElement("i");
+    cell.className=counts[key]?"on":(d.getTime()>todayTs?"future":"");
+    cell.title=key+(counts[key]?" · "+counts[key]+" 程":"");
+    cal.appendChild(cell);
+  }
+  const list=$("footList");
+  if(!h.length){
+    list.innerHTML='<div class="foot-empty">还没有足迹。生成第一张通行证，这里就会亮起来。</div>';
+  }else{
+    list.innerHTML=h.slice(0,6).map(r=>{
+      const stars=r.stars?"★".repeat(r.stars):"未评分";
+      const sub=(SCENE_NAME[r.scene]||"随机版")+" · "+(r.mode==="e"?"e 人":"i 人")+" · "+(r.theme||"");
+      return '<div class="foot-row"><span class="fr-date">'+esc(r.date||"")+'</span>'+
+        '<span class="fr-main"><span class="fr-spot">'+esc(r.spot||"未记录地点")+'</span>'+
+        '<span class="fr-sub">'+esc(sub)+'</span></span>'+
+        '<span class="fr-stars">'+stars+'</span>'+
+        '<button class="mini-btn" data-foot="'+esc(r.passNo||"")+'">复刻这局</button></div>';
+    }).join("");
+  }
+  let bytes=0;
+  try{bytes=(localStorage.getItem(STORE_KEY)||"").length+(localStorage.getItem(HIST_KEY)||"").length;}
+  catch(e){}
+  $("footPrivacy").textContent="照片、定位与足迹只保存在本机浏览器，不上传服务器。当前约占用 "+
+    (bytes*2/1024).toFixed(1)+" KB；清除浏览器数据会一并删除。";
+}
+
+/* ============ 命运链接：把一局编码进 URL hash，对方打开即只读复现 ============ */
+function fateEncode(o){
+  const bytes=new TextEncoder().encode(JSON.stringify(o));
+  let bin="";for(let i=0;i<bytes.length;i++)bin+=String.fromCharCode(bytes[i]);
+  return btoa(bin).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+function fateDecode(s){
+  let b=s.replace(/-/g,"+").replace(/_/g,"/");
+  while(b.length%4)b+="=";
+  const bin=atob(b),bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+function fatePayload(src){
+  const r={};
+  ["theme","station","rule","task","limit","fresh"].forEach(k=>{
+    if(src.results&&src.results[k])r[k]=src.results[k];
+  });
+  return {v:1,s:src.scene,m:src.mode,f:src.freshEnabled===false?0:1,r:r,
+    n:src.passNo||"NO.0000",st:src.stars||src.reviewStars||0,
+    d:(src.date||todayISO()).replace(/-/g,"."),t:timerSec||0};
+}
+function fateUrl(p){return SHARE_BASE+"#f="+fateEncode(p);}
+function fateText(p){
+  const lines=["今日命运播报 · City Walk 骰子","—— 命运替我决定了今天去哪走 ——"];
+  [["主题",p.r.theme],[FATE_SPOT_LABEL[p.s]||"目的地",p.r.station],
+   ["行路规则",p.r.rule],["任务卡",p.r.task],["限制条件",p.r.limit],
+   ["新鲜事挑战",p.r.fresh]].forEach(([k,v])=>{if(v)lines.push(k+"："+v);});
+  lines.push((p.n||"")+" ｜ "+(p.m==="e"?"e 人":"i 人")+"模式 ｜ "+(p.d||""));
+  if(p.st)lines.push("复盘评分："+p.st+" 星");
+  lines.push("","敢不敢也摇一次，看看命运给你安排了什么？",fateUrl(p));
+  return lines.join("\n");
+}
+function readFateFromHash(){
+  const m=/^#f=([A-Za-z0-9_\-]+)$/.exec(location.hash);
+  if(!m)return null;
+  try{
+    const p=fateDecode(m[1]);
+    if(!p||p.v!==1||!p.r||!SCENES[p.s])return null;
+    if(!p.r.theme||!p.r.station)return null;
+    return p;
+  }catch(e){return null;}
+}
+let toastTimer=null;
+function toast(msg){
+  const el=$("toast");el.textContent=msg;el.classList.add("show");
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove("show"),2200);
+}
+function copyText(text,msg){
+  const ok=()=>toast(msg||"已复制");
+  const fallback=()=>{
+    const ta=document.createElement("textarea");
+    ta.value=text;ta.style.position="fixed";ta.style.opacity="0";
+    document.body.appendChild(ta);ta.select();
+    let done=false;try{done=document.execCommand("copy");}catch(e){}
+    ta.remove();toast(done?(msg||"已复制"):"复制失败，请长按选择文字");
+  };
+  if(navigator.clipboard&&navigator.clipboard.writeText)
+    navigator.clipboard.writeText(text).then(ok,fallback);
+  else fallback();
+}
+function bindFateUI(){
+  if(location.protocol==="file:"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)){
+    $("fateNote").textContent+="（当前为本地预览，链接仅本机有效；部署到 Pages 后才能发给朋友）";
+  }
+  $("fateLinkBtn").addEventListener("click",()=>{
+    if(!allRolled()){toast("骰子还没全部落定");return;}
+    copyText(fateUrl(fatePayload(state)),"命运链接已复制，朋友打开即可复现");
+  });
+  $("fateTextBtn").addEventListener("click",()=>{
+    if(!allRolled()){toast("骰子还没全部落定");return;}
+    const text=fateText(fatePayload(state));
+    const mobile=window.matchMedia&&window.matchMedia("(max-width:560px)").matches;
+    if(mobile&&navigator.share){
+      navigator.share({title:"今日命运播报",text:text}).catch(err=>{
+        if(!err||err.name!=="AbortError")copyText(text,"命运播报已复制");
+      });
+    }else copyText(text,"命运播报已复制，可直接发小红书");
+  });
+  $("guestMineBtn").addEventListener("click",()=>{
+    try{history.replaceState(null,"",location.pathname+location.search);}catch(e){}
+    location.reload();
+  });
+  $("footClearBtn").addEventListener("click",()=>{
+    if(!confirm("确定清空全部足迹？只删除历史记录，不影响当前这一局。"))return;
+    writeHistory([]);renderFootprint();toast("足迹已清空");
+  });
+  $("storeClearBtn").addEventListener("click",()=>{
+    if(!confirm("确定清空本局存档？通行证、评分、打卡照片与定位都会被删除。"))return;
+    try{localStorage.removeItem(STORE_KEY);}catch(e){}
+    location.reload();
+  });
+  $("footList").addEventListener("click",e=>{
+    const b=e.target.closest("button[data-foot]");if(!b)return;
+    const rec=readHistory().find(x=>x.passNo===b.dataset.foot);
+    if(rec)copyText(fateUrl(fatePayload(rec)),"已复制这一局的命运链接");
+  });
+}
+/* 只读复现：不写本地存档、不记足迹、不可摇骰；点「我也摇一次」回到自己的局 */
+function enterGuest(p){
+  GUEST=p;
+  state.scene=SCENES[p.s]?p.s:"random";
+  state.mode=p.m==="e"?"e":"i";
+  state.freshEnabled=p.f!==0;
+  state.results={};state.rolled={};state.faces={};
+  state.passNo=p.n||"NO.0000";
+  state.reviewStars=p.st||0;state.highlight=null;
+  state.checkins={};state.finalReward=null;
+  state.crazyUsed=true;state._crazyFilled=true;
+  timerSec=p.t||0;
+  getDiceMeta().forEach(m=>{
+    const k=m.key,v=p.r[k];
+    state.results[k]=v||"";
+    state.rolled[k]=!!v;
+    const faces=optionPool(k),idx=Math.floor(Math.random()*6);
+    if(v)faces[idx]=v;
+    state.faces[k]=faces;
+    faceIdx[k]=idx;spins[k]=0;rollCount[k]=3;
+  });
+  syncChips();renderDiceGrid();grid.classList.add("guest");
+  getDiceMeta().forEach(m=>{
+    const k=m.key;
+    fillFaces(k,state.faces[k]);
+    const cube=$("cube-"+k);
+    if(cube)cube.style.transform=FACE_ROT[faceIdx[k]]||FACE_ROT[0];
+    refreshStatus(k);
+  });
+  setReviewEnabled(false);syncCheckinButtons();
+  ["rollAllBtn","rerollBtn","passBtn","resetBtn","drawBlindBtn","rewardCardBtn"]
+    .forEach(id=>$(id).disabled=true);
+  $("fateLinkBtn").style.display="none";$("fateTextBtn").style.display="none";
+  document.querySelectorAll(".panel,.actions,.timer-box,.review-box,.checkin-box,.foot-box,#conflictHint")
+    .forEach(el=>{el.style.display="none";});
+  $("guestBanner").classList.add("show");
+  $("guestMeta").textContent=state.passNo+"　｜　"+(p.d||"")+"　｜　"+
+    (p.st?("TA 给这局打了 "+p.st+" 星"):"TA 还没给这局打分")+
+    (p.t?("　｜　行程用时 "+fmt(p.t)):"");
+  drawPass();
+}
+
+/* ============ 初始化 ============ */
+setReviewEnabled(false);
+renderDiceGrid();
+bindFateUI();
+const guestPayload=readFateFromHash();
+if(guestPayload){
+  enterGuest(guestPayload);
+}else{
+  if(!loadState()){renderCheckin();saveState();}
+  renderFootprint();
+}
+addEventListener("hashchange",()=>location.reload());
+
 </script>
 </body>
 </html>
